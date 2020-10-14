@@ -1,5 +1,15 @@
 {
   "dependencies": {
+    "com.syomus.proceduraltoolkit": {
+      "version": "https://github.com/Syomus/ProceduralToolkit.git#upm",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0",
+        "com.unity.mathematics": "1.1.0"
+      },
+      "hash": "87735eb1b5cc67b992d5448102eaaafe196337ee"
+    },
     "com.unity.collab-proxy": {
       "version": "1.2.16",
       "depth": 0,
@@ -26,6 +36,13 @@
     "com.unity.ide.vscode": {
       "version": "1.2.1",
       "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.mathematics": {
+      "version": "1.1.0",
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
