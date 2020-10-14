@@ -1,0 +1,19 @@
+[submodule "Assets/Scripts"]
+	path = Assets/Scripts
+	url = https://github.com/uta-org/uzSurfaceMapperDemo.git
+	branch = master
+[submodule "Assets/Resources/RoadArchitect"]
+	path = Assets/Resources/RoadArchitect
+	url = https://github.com/FritzsHero/RoadArchitect.git
+	branch = RewrittenAPI
+[submodule "Assets/Libraries/uzLib.Lite"]
+	path = Assets/Libraries/uzLib.Lite
+	url = https://github.com/uta-org/uzLib.Lite.git
+	branch = unity-1.2.0
+[submodule "Assets/Libraries/UniGif"]
+	path = Assets/Libraries/UniGif
+	url = https://github.com/uta-org/UniGif.git
+	branch = unity-1.1.1
+[submodule "Assets/Libraries/TerrainSystem"]
+	path = Assets/Libraries/TerrainSystem
+	url = https://github.com/uta-org/TerrainSystem.git
