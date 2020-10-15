@@ -33,6 +33,8 @@ namespace uzSurfaceMapperDemo.Utils
 
         public static bool Exists<T>(string _path, out T result)
         {
+            SetMono();
+
             T r = default;
             bool isFinish = false;
             Mono.StartCoroutine(F.AsyncReadFileWithWWW<T>(_path, _result =>
@@ -48,6 +50,8 @@ namespace uzSurfaceMapperDemo.Utils
 
         public static string ReadAllText(string _path)
         {
+            SetMono();
+
             string result = null;
             bool isFinish = false;
             Mono.StartCoroutine(F.AsyncReadFileWithWWW<string>(_path, _result =>
@@ -61,6 +65,8 @@ namespace uzSurfaceMapperDemo.Utils
 
         public static byte[] ReadAllBytes(string _path)
         {
+            SetMono();
+
             byte[] result = null;
             bool isFinish = false;
             Mono.StartCoroutine(F.AsyncReadFileWithWWW<byte[]>(_path, _result =>
