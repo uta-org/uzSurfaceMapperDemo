@@ -9,6 +9,7 @@ using System.Threading;
 using UnityEngine;
 using UnityEngine.Core;
 using UnityEngine.Extensions;
+using uzSurfaceMapper.Core.Attrs;
 using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Core.Workers;
 using uzSurfaceMapper.Extensions;
@@ -16,9 +17,11 @@ using uzSurfaceMapper.Utils.Benchmarks.Impl;
 using Debug = UnityEngine.Debug;
 using F = uzSurfaceMapper.Extensions.F;
 
+// ReSharper disable ConditionIsAlwaysTrueOrFalse
+
 namespace uzSurfaceMapper.Core.Generators
 {
-    public abstract partial class MapGenerator : MonoSingleton<MapGenerator>
+    public abstract partial class MapGenerator : MonoSingleton<MapGenerator>, IInvoke
     {
         protected static readonly Thread mainThread = Thread.CurrentThread;
 
@@ -33,12 +36,14 @@ namespace uzSurfaceMapper.Core.Generators
 
         #region "Static fields"
 
+        public const bool forceReady = true;
+
         private static bool isReady;
 
         public static bool IsReady
         {
             get => (TextureWorkerBase.WorkersCollection.IsNullOrEmpty() ||
-                    TextureWorkerBase.WorkersCollection.All(x => x.IsReady)) && isReady;
+                    TextureWorkerBase.WorkersCollection.All(x => x.IsReady)) && isReady || forceReady;
             set => isReady = value;
         }
 
@@ -99,88 +104,93 @@ namespace uzSurfaceMapper.Core.Generators
 
         public static string RoadJSONPath => GetOutputSavePath("road");
 
-        public ObservableCollection<Action> DelegateFuncs { get; } = new ObservableCollection<Action>();
+        //public ObservableCollection<Action> DelegateFuncs { get; } = new ObservableCollection<Action>();
 
-        private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        //private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        //{
+        //    foreach (var item in e.NewItems)
+        //    {
+        //        var action = (Action)item;
+        //        action?.Invoke();
+        //    }
+        //}
+
+        private static bool AlreadyExecuted { get; set; }
+
+        [InvokeAtAwake]
+        public virtual void InvokeAtAwake()
         {
-            foreach (var item in e.NewItems)
+            if (AlreadyExecuted)
+                return;
+
+            AlreadyExecuted = true;
+
+            TextureBenchmarkData.StartBenchmark(TextureBenchmark.ResourcesLoad);
+
+            // We will need to load it because of minimap
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            if (!debugging && (MapController.Instance.showMinimap || forceTerrainGen))
             {
-                var action = (Action)item;
-                action?.Invoke();
+                // TODO: Implement async
+                MapTexture = Resources.Load<Texture2D>(resourcePathGetter);
+
+                mapWidth = MapTexture.width;
+                mapHeight = MapTexture.height;
+
+                // TODO: Implement async read
+                mapColors = MapTexture.GetPixels();
+
+                TextureWorkerBase.SetReference(mapColors);
+
+                //AsyncHelper.RunAsync(
+                //    () =>
+                //    {
+                //        // TODO: Implement here all calls
+                //        VoronoiTextureWorker.PrepareVoronoiCells();
+                //    }); // ,
+                //() => IsReady = true);
+
+                // @TODO: Implement offset polygon view here
+
+                //if (testGridPerfomance)
+                //{
+                //    for (int i = 1; i <= 5; i++)
+                //    {
+                //        var _ = mapColors.GridCheck(new Point(mapWidth / 2, mapHeight / 2), mapWidth, mapHeight, i).ToArray();
+                //    }
+                //}
+
+                // TODO: This is working, but not needed on Demo. Remove and refactor.
+                //if (testVoronoi)
+                //{
+                //    VoronoiWorker = AsyncHelper.RunAsync(
+                //        () => DoVoronoi(mapColors, mapWidth, mapHeight, false, false, false), result =>
+                //        {
+                //            var debugStr = result.Item1;
+
+                //            if (result.Item2 == null)
+                //            {
+                //                Debug.LogError($"{nameof(VoronoiWorker)} cancelled!");
+                //                Debug.Log(debugStr);
+                //                return;
+                //            }
+
+                //            Debug.Log(debugStr);
+
+                //            var watch = Stopwatch.StartNew();
+                //            var map = result.Item2.CastBack().ToArray();
+                //            var filePath = Path.Combine(Environment.CurrentDirectory, "voronoi-test.png");
+
+                //            F.SaveAndClear(filePath, map, mapWidth, mapHeight);
+                //            watch.Stop();
+
+                //            Debug.Log($"Done in {watch.ElapsedMilliseconds} ms!");
+                //        });
+                //    VoronoiWorker.WorkerSupportsCancellation = true;
+                //}
             }
-        }
 
-        public void OnEnable()
-        {
-            DelegateFuncs.Add(() =>
-            {
-                TextureBenchmarkData.StartBenchmark(TextureBenchmark.ResourcesLoad);
-
-                // We will need to load it because of minimap
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                if (!debugging && (MapController.Instance.showMinimap || forceTerrainGen))
-                {
-                    // TODO: Implement async
-                    MapTexture = Resources.Load<Texture2D>(resourcePathGetter);
-
-                    mapWidth = MapTexture.width;
-                    mapHeight = MapTexture.height;
-
-                    // TODO: Implement async read
-                    mapColors = MapTexture.GetPixels();
-
-                    TextureWorkerBase.SetReference(mapColors);
-
-                    //AsyncHelper.RunAsync(
-                    //    () =>
-                    //    {
-                    //        // TODO: Implement here all calls
-                    //        VoronoiTextureWorker.PrepareVoronoiCells();
-                    //    }); // ,
-                    //() => IsReady = true);
-
-                    // @TODO: Implement offset polygon view here
-
-                    //if (testGridPerfomance)
-                    //{
-                    //    for (int i = 1; i <= 5; i++)
-                    //    {
-                    //        var _ = mapColors.GridCheck(new Point(mapWidth / 2, mapHeight / 2), mapWidth, mapHeight, i).ToArray();
-                    //    }
-                    //}
-
-                    // TODO: This is working, but not needed on Demo. Remove and refactor.
-                    //if (testVoronoi)
-                    //{
-                    //    VoronoiWorker = AsyncHelper.RunAsync(
-                    //        () => DoVoronoi(mapColors, mapWidth, mapHeight, false, false, false), result =>
-                    //        {
-                    //            var debugStr = result.Item1;
-
-                    //            if (result.Item2 == null)
-                    //            {
-                    //                Debug.LogError($"{nameof(VoronoiWorker)} cancelled!");
-                    //                Debug.Log(debugStr);
-                    //                return;
-                    //            }
-
-                    //            Debug.Log(debugStr);
-
-                    //            var watch = Stopwatch.StartNew();
-                    //            var map = result.Item2.CastBack().ToArray();
-                    //            var filePath = Path.Combine(Environment.CurrentDirectory, "voronoi-test.png");
-
-                    //            F.SaveAndClear(filePath, map, mapWidth, mapHeight);
-                    //            watch.Stop();
-
-                    //            Debug.Log($"Done in {watch.ElapsedMilliseconds} ms!");
-                    //        });
-                    //    VoronoiWorker.WorkerSupportsCancellation = true;
-                    //}
-                }
-
-                TextureBenchmarkData.StopBenchmark(TextureBenchmark.ResourcesLoad);
-            });
+            TextureBenchmarkData.StopBenchmark(TextureBenchmark.ResourcesLoad);
         }
 
         /// <summary>

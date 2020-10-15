@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
+using uzSurfaceMapper.Core.Attrs;
 using uzSurfaceMapper.Core.Workers;
 using uzSurfaceMapper.Core.Workers.Interfaces;
 using uzSurfaceMapper.Model;
@@ -19,21 +20,21 @@ namespace uzSurfaceMapper.Core.Generators
         public Color32[] Target { get; set; }
         public bool IsGeneratorFinished { get; set; }
 
-        public void OnEnable()
+        [InvokeAtAwake]
+        public override void InvokeAtAwake()
         {
-            DelegateFuncs.Add(() =>
-            {
-                var exists = File.Exists(RoadJSONPath);
-                Debug.Log(exists
-                    ? $"'{RoadJSONPath}' exists. Deserializing!"
-                    : $"'{RoadJSONPath}' doesn't exists. Instantiating!");
+            base.InvokeAtAwake();
 
-                Model = exists
-                    ? JsonConvert.DeserializeObject<RoadModel>(File.ReadAllText(RoadJSONPath))
-                    : new RoadModel();
+            var exists = File.Exists(RoadJSONPath);
+            Debug.Log(exists
+                ? $"'{RoadJSONPath}' exists. Deserializing!"
+                : $"'{RoadJSONPath}' doesn't exists. Instantiating!");
 
-                RoadModel = Model;
-            });
+            Model = exists
+                ? JsonConvert.DeserializeObject<RoadModel>(File.ReadAllText(RoadJSONPath))
+                : new RoadModel();
+
+            RoadModel = Model;
         }
 
         public void RegisterSharedWorker(IWorkerShareable worker)

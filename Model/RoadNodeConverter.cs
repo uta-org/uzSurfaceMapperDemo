@@ -1,4 +1,6 @@
-﻿//using Newtonsoft.Json.Serialization;
+﻿#define PURO
+
+//using Newtonsoft.Json.Serialization;
 //using uzSurfaceMapper.Utils.Serialization;
 
 namespace uzSurfaceMapper.Model
