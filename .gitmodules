@@ -21,3 +21,7 @@
 	path = Assets/Plugins/uzSurfaceMapperDemo
 	url = https://github.com/uta-org/uzSurfaceMapperDemo.git
 	branch = unity_plugins
+[submodule "Assets/APIScripts"]
+	path = Assets/APIScripts
+	url = https://github.com/uta-org/uzSurfaceMapperDemo.git
+	branch = api
