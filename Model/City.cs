@@ -219,15 +219,20 @@ namespace uzSurfaceMapper.Model
             // Use * if you are using floor, and / if you are using ceil
             Rect rect = new Rect(xSingleMinPos, ySingleMinPos, xSingleMaxPos, ySingleMaxPos),
                 // We will get the converted position (if the map is 4,200 units this will obtain the total mapWidth of the texture that is 7,000)
-                rConv = SConvert.Instance.ConvertRect(xSingleMinPos, ySingleMinPos, xSingleMaxPos, ySingleMaxPos);
+                rectOnMap = SConvert.Instance.ConvertRect(xSingleMinPos, ySingleMinPos, xSingleMaxPos, ySingleMaxPos);
 
             var chunk = new Chunk(rect);
 
             if (chunk.listOfIndexBuildings == null)
-                chunk.listOfIndexBuildings = SetChunkBuilds(rConv);
+            {
+                var set = SetChunkBuilds(rectOnMap);
+                chunk.listOfIndexBuildings = set;
+
+                Debug.Log($"Set: {set.Count} buildings. (Loaded: {Instance.buildings.Count}) || Rect: {rectOnMap}");
+            }
 
             if (chunk.roadPoints == null)
-                chunk.roadPoints = SetChunkRoadPoints(rConv);
+                chunk.roadPoints = SetChunkRoadPoints(rectOnMap);
             //Debug.Log($"Count of buildings at chunk ({rect.x}, {rect.y}): {_c.listOfBuildings.Count}");
 
             // We add the chunk

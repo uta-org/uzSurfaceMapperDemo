@@ -125,7 +125,7 @@ namespace uzSurfaceMapper.Model
         {
             get
             {
-                if (center == null)
+                if (center == default)
                     GetCenter();
 
                 return center;

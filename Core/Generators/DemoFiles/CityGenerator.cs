@@ -5,7 +5,6 @@ using CielaSpike;
 using UnityEngine;
 using UnityEngine.Utils.DebugTools;
 using UnityGif;
-using UnityStandardAssets.Characters.FirstPerson;
 using uzSurfaceMapper.Core.Attrs;
 using uzSurfaceMapper.Core.Func;
 using uzSurfaceMapper.Extensions;
@@ -88,6 +87,9 @@ namespace uzSurfaceMapper.Core.Generators
 #pragma warning disable 162
                 return;
 #pragma warning restore 162
+
+            if (singlePlaneSize == -1)
+                singlePlaneSize = 12.2f;
 
             // The first thing we will do, is fill the fields of city class (to allow it to have what it need)
             if (SConv == null)

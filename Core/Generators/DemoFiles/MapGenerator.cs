@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.Core;
-using UnityEngine.Extensions;
 using UnityStandardAssets.Characters.FirstPerson;
 using uzSurfaceMapper.Core.Attrs;
 using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
@@ -17,8 +12,6 @@ using uzSurfaceMapper.Extensions;
 using uzSurfaceMapper.Model;
 using uzSurfaceMapper.Utils.Benchmarks.Impl;
 using Color = UnityEngine.Color;
-using Debug = UnityEngine.Debug;
-using F = uzSurfaceMapper.Extensions.F;
 
 // ReSharper disable HeuristicUnreachableCode
 
@@ -41,14 +34,12 @@ namespace uzSurfaceMapper.Core.Generators
 
         #region "Static fields"
 
-        public const bool forceReady = true;
-
         private static bool isReady;
 
         public static bool IsReady
         {
             get => (TextureWorkerBase.WorkersCollection.IsNullOrEmpty() ||
-                    TextureWorkerBase.WorkersCollection.All(x => x.IsReady)) && isReady || forceReady;
+                    TextureWorkerBase.WorkersCollection.All(x => x.IsReady)) && isReady;
             set => isReady = value;
         }
 
