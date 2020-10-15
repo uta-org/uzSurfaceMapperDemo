@@ -215,11 +215,13 @@ namespace uzSurfaceMapper.Model
                 xSingleMaxPos = sps,
                 ySingleMaxPos = sps;
 
+            var instance = SConvert.Instance;
+
             // And convert back with the exact precission the position of each chunk
             // Use * if you are using floor, and / if you are using ceil
             Rect rect = new Rect(xSingleMinPos, ySingleMinPos, xSingleMaxPos, ySingleMaxPos),
                 // We will get the converted position (if the map is 4,200 units this will obtain the total mapWidth of the texture that is 7,000)
-                rectOnMap = SConvert.Instance.ConvertRect(xSingleMinPos, ySingleMinPos, xSingleMaxPos, ySingleMaxPos);
+                rectOnMap = instance.ConvertRect(xSingleMinPos, ySingleMinPos, xSingleMaxPos, ySingleMaxPos);
 
             var chunk = new Chunk(rect);
 
