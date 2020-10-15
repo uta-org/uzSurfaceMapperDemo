@@ -847,28 +847,5 @@ PrefabInstance:
       propertyPath: m_Name
       value: Map Generation
       objectReference: {fileID: 0}
-    - target: {fileID: 188065452796008317, guid: 62376edb0a9ea1d4db13f2276659b7ec,
-        type: 3}
-      propertyPath: heightMapSettings
-      value: 
-      objectReference: {fileID: 11400000, guid: 740a13ca91e454c51aeb1f625a396eca,
-        type: 2}
-    - target: {fileID: 188065452796008317, guid: 62376edb0a9ea1d4db13f2276659b7ec,
-        type: 3}
-      propertyPath: mapMaterial
-      value: 
-      objectReference: {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
-    - target: {fileID: 188065452796008317, guid: 62376edb0a9ea1d4db13f2276659b7ec,
-        type: 3}
-      propertyPath: meshSettings
-      value: 
-      objectReference: {fileID: 11400000, guid: 46ff57af49f874fe2bd2a350a99d063c,
-        type: 2}
-    - target: {fileID: 188065452796008317, guid: 62376edb0a9ea1d4db13f2276659b7ec,
-        type: 3}
-      propertyPath: textureSettings
-      value: 
-      objectReference: {fileID: 11400000, guid: addd6b0c4581e4f73b0395a4943b9f57,
-        type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 62376edb0a9ea1d4db13f2276659b7ec, type: 3}

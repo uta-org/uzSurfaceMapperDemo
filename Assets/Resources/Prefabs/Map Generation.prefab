@@ -227,10 +227,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_GenerateHeightmaps: 1
-  colliderLodIndex: 0
-  detailLevels: []
+  colliderLodIndex: 5
+  detailLevels:
+  - lod: 0
+    visibleDstThreshold: 0
+  - lod: 1
+    visibleDstThreshold: 100
+  - lod: 2
+    visibleDstThreshold: 200
+  - lod: 3
+    visibleDstThreshold: 300
+  - lod: 4
+    visibleDstThreshold: 400
   heightMapSettings: {fileID: 11400000, guid: 740a13ca91e454c51aeb1f625a396eca, type: 2}
-  mapMaterial: {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  mapMaterial: {fileID: 2100000, guid: dd9faff6ef2cd6946bb626fb1d737d24, type: 2}
   meshSettings: {fileID: 11400000, guid: 46ff57af49f874fe2bd2a350a99d063c, type: 2}
   textureSettings: {fileID: 11400000, guid: addd6b0c4581e4f73b0395a4943b9f57, type: 2}
 --- !u!114 &188065452796008316
