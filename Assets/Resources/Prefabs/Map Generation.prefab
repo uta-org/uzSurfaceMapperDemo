@@ -162,7 +162,6 @@ GameObject:
   - component: {fileID: 3164065074815116110}
   - component: {fileID: 1999142942}
   - component: {fileID: 1999142941}
-  - component: {fileID: 1540163596772282689}
   m_Layer: 0
   m_Name: Map Generation
   m_TagString: Untagged
@@ -263,20 +262,6 @@ MonoBehaviour:
   city:
     bridges: []
   continueWhenFinish: 0
---- !u!114 &1540163596772282689
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 188065451520022631}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fd5a782970a3f5498bfa0ecee419f9a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  doTextureBenchmark: 1
-  doCityBenchmark: 1
 --- !u!1 &188065452796008066
 GameObject:
   m_ObjectHideFlags: 0
@@ -322,7 +307,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_GenerateHeightmaps: 1
-  colliderLodIndex: 5
+  colliderLodIndex: 0
   detailLevels:
   - lod: 0
     visibleDstThreshold: 0
