@@ -36,6 +36,12 @@ using Random = System.Random;
 using SConvert = uzSurfaceMapper.Core.Func.SceneConversion;
 using Task = System.Threading.Tasks.Task;
 
+#if UNITY_WEBGL_API
+
+using File = uzSurfaceMapperDemo.Utils.File;
+
+#endif
+
 namespace uzSurfaceMapper.Extensions
 {
     public static class F
@@ -1321,6 +1327,7 @@ namespace uzSurfaceMapper.Extensions
             return animationCurve.Evaluate(weight);
         }
 
+#if !UNITY_WEBGL_API
         /// <summary>
         ///     Percentiles the specified percentile.
         /// </summary>
@@ -1352,6 +1359,7 @@ namespace uzSurfaceMapper.Extensions
             foreach (var t in ts)
                 yield return t;
         }
+#endif
 
         // TODO: This not needed anymore. This implementation was used to created a building on the old 2018 way.
         ///// <summary>
@@ -1578,8 +1586,35 @@ namespace uzSurfaceMapper.Extensions
         /// <param name="finishedReading">The finished reading.</param>
         /// <returns></returns>
         [MustBeReviewed]
-        public static IEnumerator AsyncReadFileWithWWW(string pathOrUrl, Action<float> updatePerc,
-            Action<string> finishedReading)
+        public static IEnumerator AsyncReadFileWithWWW<T>(string pathOrUrl)
+        {
+            return AsyncReadFileWithWWW<T>(pathOrUrl, null);
+        }
+
+        /// <summary>
+        ///     Asynchronouses the read file with WWW.
+        /// </summary>
+        /// <param name="pathOrUrl">The path or URL.</param>
+        /// <param name="updatePerc">The update perc.</param>
+        /// <param name="finishedReading">The finished reading.</param>
+        /// <returns></returns>
+        [MustBeReviewed]
+        public static IEnumerator AsyncReadFileWithWWW<T>(string pathOrUrl,
+            Action<T> finishedReading)
+        {
+            return AsyncReadFileWithWWW(pathOrUrl, null, finishedReading);
+        }
+
+        /// <summary>
+        ///     Asynchronouses the read file with WWW.
+        /// </summary>
+        /// <param name="pathOrUrl">The path or URL.</param>
+        /// <param name="updatePerc">The update perc.</param>
+        /// <param name="finishedReading">The finished reading.</param>
+        /// <returns></returns>
+        [MustBeReviewed]
+        public static IEnumerator AsyncReadFileWithWWW<T>(string pathOrUrl, Action<float> updatePerc,
+            Action<T> finishedReading)
         {
             var fileInfo = new FileInfo(pathOrUrl);
 
@@ -1602,9 +1637,12 @@ namespace uzSurfaceMapper.Extensions
                 }
 
                 if (www.isHttpError || www.isNetworkError)
+                {
                     Debug.Log("Error while downloading data: " + www.error);
+                    finishedReading(default);
+                }
                 else
-                    finishedReading(www.downloadHandler.text);
+                    finishedReading((T)(typeof(T) == typeof(string) ? (object)www.downloadHandler.text : www.downloadHandler.data));
             }
         }
 
@@ -3167,6 +3205,7 @@ namespace uzSurfaceMapper.Extensions
             return (lastValue * times + value) / ++times;
         }
 
+#if !UNITY_WEBGL_API
         /// <summary>
         /// Sizes the of.
         /// </summary>
@@ -3213,6 +3252,7 @@ namespace uzSurfaceMapper.Extensions
 
             return sizeOfInt * xRes * zRes * 6 + sizeOfVector3 * (xRes + 1) * (zRes + 1);
         }
+#endif
 
         /// <summary>
         /// Clones the terrain.

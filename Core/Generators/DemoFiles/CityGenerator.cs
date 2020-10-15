@@ -12,6 +12,12 @@ using uzSurfaceMapper.Model;
 using uzSurfaceMapper.Utils.Benchmarks;
 using uzSurfaceMapper.Utils.Benchmarks.Impl;
 
+#if UNITY_WEBGL_API
+
+using File = uzSurfaceMapperDemo.Utils.File;
+
+#endif
+
 namespace uzSurfaceMapper.Core.Generators
 {
     public sealed partial class CityGenerator : MapGenerator

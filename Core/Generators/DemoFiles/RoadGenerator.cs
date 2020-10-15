@@ -8,6 +8,12 @@ using uzSurfaceMapper.Model;
 using Color = uzSurfaceMapper.Model.Color;
 using UColor = UnityEngine.Color;
 
+#if UNITY_WEBGL_API
+
+using File = uzSurfaceMapperDemo.Utils.File;
+
+#endif
+
 namespace uzSurfaceMapper.Core.Generators
 {
     public sealed partial class RoadGenerator : MapGenerator, IWorkerShareable
