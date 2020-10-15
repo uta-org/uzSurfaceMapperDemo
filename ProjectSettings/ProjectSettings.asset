@@ -575,6 +575,7 @@ PlayerSettings:
   webGLWasmStreaming: 0
   scriptingDefineSymbols:
     1: IS_DEMO
+    13: IS_DEMO
   platformArchitecture: {}
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}
