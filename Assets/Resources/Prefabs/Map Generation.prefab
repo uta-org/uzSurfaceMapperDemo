@@ -158,6 +158,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 188065451520022624}
+  - component: {fileID: 1999142940}
+  - component: {fileID: 3164065074815116110}
+  - component: {fileID: 1999142942}
+  - component: {fileID: 1999142941}
   m_Layer: 0
   m_Name: Map Generation
   m_TagString: Untagged
@@ -182,6 +186,70 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1999142940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188065451520022631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31d5fb20bfeeec74a9b29d6eec4aa109, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentPerc: 0
+  IngameDebugConsole: {fileID: 0}
+  nsfw: 0
+  forceTerrainGeneration: 0
+  showMinimap: 1
+  seaPixel:
+    serializedVersion: 2
+    rgba: 4291340159
+  navIcon: {fileID: 2800000, guid: 05c7216c78d4dd34ebe2bac9c1e274d7, type: 3}
+  minimapSize: {x: 0, y: 0}
+--- !u!114 &3164065074815116110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188065451520022631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64d19d1f4ff65074ab6db35f4efa6c7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1999142942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188065451520022631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c07173f7a52ede142a12f9e559422612, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  resourcePath: Textures/map
+  debugging: 0
+  realScaleZoom: 1
+  conversionFactor: 1
+--- !u!114 &1999142941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188065451520022631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28acdca0a3547f74fafa67f162de403e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  resourcePath: Textures/map
+  debugging: 0
 --- !u!1 &188065452796008066
 GameObject:
   m_ObjectHideFlags: 0
