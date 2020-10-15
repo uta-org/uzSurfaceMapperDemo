@@ -200,7 +200,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentPerc: 0
   IngameDebugConsole: {fileID: 0}
-  nsfw: 0
+  nsfw: 1
   forceTerrainGeneration: 0
   showMinimap: 1
   seaPixel:
@@ -238,7 +238,7 @@ MonoBehaviour:
   city:
     bridges: []
   continueWhenFinish: 0
-  realScaleZoom: 1
+  realScaleZoom: 4
   conversionFactor: 1
   _terrainGenerator: {fileID: 188065452796008066}
   loadingGif:
