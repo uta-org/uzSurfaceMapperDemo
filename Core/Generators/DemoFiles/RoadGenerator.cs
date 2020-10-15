@@ -25,6 +25,11 @@ namespace uzSurfaceMapper.Core.Generators
         {
             base.InvokeAtAwake();
 
+            if (!IS_DEMO)
+#pragma warning disable 162
+                return;
+#pragma warning restore 162
+
             var exists = File.Exists(RoadJSONPath);
             Debug.Log(exists
                 ? $"'{RoadJSONPath}' exists. Deserializing!"

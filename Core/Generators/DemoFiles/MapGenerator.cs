@@ -9,13 +9,18 @@ using System.Threading;
 using UnityEngine;
 using UnityEngine.Core;
 using UnityEngine.Extensions;
+using UnityStandardAssets.Characters.FirstPerson;
 using uzSurfaceMapper.Core.Attrs;
 using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Core.Workers;
 using uzSurfaceMapper.Extensions;
+using uzSurfaceMapper.Model;
 using uzSurfaceMapper.Utils.Benchmarks.Impl;
+using Color = UnityEngine.Color;
 using Debug = UnityEngine.Debug;
 using F = uzSurfaceMapper.Extensions.F;
+
+// ReSharper disable HeuristicUnreachableCode
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 
@@ -85,6 +90,21 @@ namespace uzSurfaceMapper.Core.Generators
         public static int mapHeight = -1;
 
         /// <summary>
+        ///     The camera flags
+        /// </summary>
+        private CameraClearFlags cameraFlags;
+
+        /// <summary>
+        ///     The camera color
+        /// </summary>
+        private Color cameraColor;
+
+        /// <summary>
+        ///     The euler angles
+        /// </summary>
+        private Vector3 eulerAngles;
+
+        /// <summary>
         ///     Force terrain heightmap generation although city was already generated
         ///     Change this to false in case you want to test Terrain Generation
         /// </summary>
@@ -95,6 +115,21 @@ namespace uzSurfaceMapper.Core.Generators
         /// </summary>
         [HideInInspector] [SerializeField] public bool debugging;
 
+        /// <summary>
+        ///     The player object
+        /// </summary>
+        [HideInInspector] [SerializeField] public GameObject playerObject;
+
+        /// <summary>
+        ///     The city
+        /// </summary>
+        [HideInInspector] public City city;
+
+        /// <summary>
+        ///     Continue creating builds when finish map texture iteration
+        /// </summary>
+        [HideInInspector] [SerializeField] public bool continueWhenFinish;
+
         public static Texture2D MapTexture { get; private set; }
 
         /// <summary>
@@ -103,6 +138,23 @@ namespace uzSurfaceMapper.Core.Generators
         public static Color[] mapColors;
 
         public static string RoadJSONPath => GetOutputSavePath("road");
+
+        /// <summary>
+        ///     Gets a value indicating whether this instance is debugging.
+        /// </summary>
+        /// <value>
+        ///     <c>true</c> if this instance is debugging; otherwise, <c>false</c>.
+        /// </value>
+        public static bool IsDebugging
+        {
+            get
+            {
+                if (Instance == null)
+                    return false;
+
+                return Instance.debugging;
+            }
+        }
 
         //public ObservableCollection<Action> DelegateFuncs { get; } = new ObservableCollection<Action>();
 
@@ -120,6 +172,11 @@ namespace uzSurfaceMapper.Core.Generators
         [InvokeAtAwake]
         public virtual void InvokeAtAwake()
         {
+            if (!IS_DEMO)
+#pragma warning disable 162
+                return;
+#pragma warning restore 162
+
             if (AlreadyExecuted)
                 return;
 
@@ -194,13 +251,42 @@ namespace uzSurfaceMapper.Core.Generators
         }
 
         /// <summary>
+        ///     Toggles the player.
+        /// </summary>
+        /// <param name="active">if set to <c>true</c> [active].</param>
+        protected void TogglePlayer(bool active)
+        {
+            playerObject.GetComponent<CharacterController>().enabled = active;
+            playerObject.GetComponent<AudioSource>().enabled = active;
+            playerObject.GetComponent<FirstPersonController>().enabled = active;
+        }
+
+        /// <summary>
+        ///     Toggles the camera.
+        /// </summary>
+        /// <param name="active">if set to <c>true</c> [active].</param>
+        protected void ToggleCamera(bool active)
+        {
+            if (!active)
+            {
+                cameraFlags = Camera.main.clearFlags;
+                cameraColor = Camera.main.backgroundColor;
+                eulerAngles = Camera.main.transform.eulerAngles;
+            }
+
+            Camera.main.clearFlags = active ? cameraFlags : CameraClearFlags.SolidColor;
+            Camera.main.backgroundColor = active ? cameraColor : UnityEngine.Color.black;
+            Camera.main.transform.eulerAngles = active ? eulerAngles : Vector3.left * 90;
+        }
+
+        /// <summary>
         ///     Gets the save path.
         /// </summary>
         /// <param name="root">The root.</param>
         /// <returns></returns>
-        protected static string GetOutputSavePath(string name = "city")
+        protected static string GetOutputSavePath(string name = "city", bool isDemo = IS_DEMO)
         {
-            string file = Path.Combine(GetStreamingAssetsPath(), "Generated Output", $"{name}.json"),
+            string file = Path.Combine(GetStreamingAssetsPath(), isDemo ? "ExampleData" : "Generated Output", $"{name}.json"),
                 folder = Path.GetDirectoryName(file);
 
             if (!Directory.Exists(folder))
@@ -237,5 +323,11 @@ namespace uzSurfaceMapper.Core.Generators
 
             return streamingAssets;
         }
+
+#if IS_DEMO
+        protected const bool IS_DEMO = true;
+#else
+        protected const bool IS_DEMO = false;
+#endif
     }
 }
