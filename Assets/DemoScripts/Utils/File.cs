@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
+using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Extensions;
 using Object = UnityEngine.Object;
 
@@ -10,6 +10,8 @@ namespace uzSurfaceMapperDemo.Utils
 {
     public static class File
     {
+        private const int Timeout = 60;
+
         public static void WriteAllText(string _path, string _str)
         {
             // TODO?
@@ -34,6 +36,7 @@ namespace uzSurfaceMapperDemo.Utils
         public static bool Exists<T>(string _path, out T result)
         {
             SetMono();
+            var time = Time.time;
 
             T r = default;
             bool isFinish = false;
@@ -42,15 +45,26 @@ namespace uzSurfaceMapperDemo.Utils
                 r = _result;
                 isFinish = true;
             }));
-            while (!isFinish) { }
+            while (!isFinish)
+            {
+                if (Time.time - time > Timeout) throw new TimeoutException("Can't check if file exists due to timeout exceeded.");
+            }
 
             result = r;
             return result != null;
         }
 
+        //public static void ReadAllText(string _path, Action<string> result)
+        //{
+        //    SetMono();
+        //    Mono.StartCoroutine(F.AsyncReadFileWithWWW(_path, result));
+        //}
+
+        [WIP] // TODO: not working
         public static string ReadAllText(string _path)
         {
             SetMono();
+            var time = Time.time;
 
             string result = null;
             bool isFinish = false;
@@ -59,13 +73,17 @@ namespace uzSurfaceMapperDemo.Utils
                 result = _result;
                 isFinish = true;
             }));
-            while (!isFinish) { }
+            while (!isFinish)
+            {
+                if (Time.time - time > Timeout) throw new TimeoutException("Can't read file due to timeout exceeded.");
+            }
             return result;
         }
 
         public static byte[] ReadAllBytes(string _path)
         {
             SetMono();
+            var time = Time.time;
 
             byte[] result = null;
             bool isFinish = false;
@@ -74,7 +92,10 @@ namespace uzSurfaceMapperDemo.Utils
                 result = _result;
                 isFinish = true;
             }));
-            while (!isFinish) { }
+            while (!isFinish)
+            {
+                if (Time.time - time > Timeout) throw new TimeoutException("Can't read file due to timeout exceeded.");
+            }
             return result;
         }
 
