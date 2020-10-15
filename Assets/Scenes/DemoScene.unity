@@ -474,10 +474,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1999142940, guid: 62376edb0a9ea1d4db13f2276659b7ec, type: 3}
-      propertyPath: IngameDebugConsole
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 188065451166005868, guid: 62376edb0a9ea1d4db13f2276659b7ec,
         type: 3}
       propertyPath: editorPlayCamera
