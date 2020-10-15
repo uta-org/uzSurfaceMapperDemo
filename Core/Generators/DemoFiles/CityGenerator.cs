@@ -18,8 +18,9 @@ namespace uzSurfaceMapper.Core.Generators
     {
         /// <summary>
         ///     The real scale zoom (if the map texture is 7000x5000 this will generate a plane of 42kmx30km)
+        ///     Default: 4 (old: 6)
         /// </summary>
-        public float realScaleZoom = 1;
+        public float realScaleZoom = 4;
 
         /// <summary>
         ///     The conversion factor
@@ -28,6 +29,7 @@ namespace uzSurfaceMapper.Core.Generators
 
         /// <summary>
         ///     The single plane size
+        ///     Default: 12.2 (old 33.3)
         /// </summary>
         private float singlePlaneSize = -1;
 

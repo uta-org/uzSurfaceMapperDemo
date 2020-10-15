@@ -230,7 +230,7 @@ namespace uzSurfaceMapper.Model
                 var set = SetChunkBuilds(rectOnMap);
                 chunk.listOfIndexBuildings = set;
 
-                Debug.Log($"Set: {set.Count} buildings. (Loaded: {Instance.buildings.Count}) || Rect: {rectOnMap}");
+                //Debug.Log($"Set: {set.Count} buildings. (Loaded: {Instance.buildings.Count}) || Rect: {rectOnMap}");
             }
 
             if (chunk.roadPoints == null)
