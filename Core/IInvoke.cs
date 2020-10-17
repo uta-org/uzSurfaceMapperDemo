@@ -3,5 +3,7 @@
     public interface IInvoke
     {
         void InvokeAtAwake();
+
+        void InvokeAtUpdate();
     }
 }

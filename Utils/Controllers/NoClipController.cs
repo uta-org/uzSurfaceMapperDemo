@@ -13,7 +13,7 @@ namespace uzSurfaceMapper.Utils.Controllers
     /// </summary>
     /// <seealso cref="UnityEngine.MonoBehaviour" />
     [RequireComponent(typeof(Camera))]
-    [ExecuteInEditMode]
+    //[ExecuteInEditMode]
     public class NoClipController : MonoSingleton<NoClipController>
     {
         public enum RotationAxes
@@ -230,8 +230,8 @@ namespace uzSurfaceMapper.Utils.Controllers
         /// </summary>
         private void Start()
         {
-            if (Application.isEditor && !Application.isPlaying)
-                return;
+            //if (Application.isEditor && !Application.isPlaying)
+            //    return;
 
             jumpTapper = new MultiTapper(enableKey);
             moveTapper = new MultiTapper(quickKey);
@@ -242,8 +242,8 @@ namespace uzSurfaceMapper.Utils.Controllers
         /// </summary>
         private void Update()
         {
-            if (Application.isEditor && !Application.isPlaying)
-                return;
+            //if (Application.isEditor && !Application.isPlaying)
+            //    return;
 
             if (jumpTapper.CheckMultiTap())
                 SwitchCamera();
