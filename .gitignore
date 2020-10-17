@@ -1,5 +1,7 @@
 /*.png
 /*.txt
+# Assets\VIZZUTA\uzSurfaceMapperDemo\Libraries\uzLib.Lite
+Assets/.VIZZUTA/
 
 # This .gitignore file should be placed at the root of your Unity project directory
 #

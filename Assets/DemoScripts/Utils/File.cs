@@ -25,6 +25,7 @@ namespace uzSurfaceMapperDemo.Utils
 
         public static bool Exists(string _path)
         {
+            if (Application.isEditor) return System.IO.File.Exists(_path);
             return UnityWebRequest.Head(_path).responseCode < 400;
         }
 
@@ -111,8 +112,13 @@ namespace uzSurfaceMapperDemo.Utils
             return null;
         }
 
-        public static void WriteAllBytes(string _filePath, byte[] _encodeToPng)
+        public static void WriteAllBytes(string _filePath, byte[] _byte)
         {
+            if (Application.isEditor)
+            {
+                System.IO.File.WriteAllBytes(_filePath, _byte);
+                return;
+            }
             PrintError();
         }
 
