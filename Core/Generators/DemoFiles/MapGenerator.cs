@@ -125,6 +125,8 @@ namespace uzSurfaceMapper.Core.Generators
 
         public static Texture2D MapTexture { get; private set; }
 
+        public static City CityModel { get; internal set; }
+
         /// <summary>
         ///     The map colors
         /// </summary>
@@ -143,7 +145,7 @@ namespace uzSurfaceMapper.Core.Generators
         /// <summary>
         ///     The hold position
         /// </summary>
-        protected Vector3 holdPosition;
+        //protected Vector3 holdPosition;
 
         /// <summary>
         ///     Gets a value indicating whether this instance is debugging.
@@ -261,12 +263,12 @@ namespace uzSurfaceMapper.Core.Generators
         {
             if (IsReady && !IsReadyFlagged)
             {
-                OnGenerationFinished();
+                OnGenerationFinishedEvent();
                 IsReadyFlagged = true;
             }
 
-            if (Input.GetKeyDown(KeyCode.H))
-                FirstPersonController.Pos = holdPosition;
+            //if (Input.GetKeyDown(KeyCode.H))
+            //    FirstPersonController.Pos = holdPosition;
         }
 
         /// <summary>
@@ -345,7 +347,7 @@ namespace uzSurfaceMapper.Core.Generators
 
         protected abstract IEnumerator SerializeBin();
 
-        public static event Action OnGenerationFinished = delegate { };
+        public static event Action OnGenerationFinishedEvent = delegate { };
 
 #if IS_DEMO
         protected const bool IS_DEMO = true;

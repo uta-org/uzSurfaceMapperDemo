@@ -1,14 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using ProceduralToolkit;
 using ProceduralToolkit.Buildings;
 using UnityEngine;
-using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Model;
 using uzSurfaceMapper.Core.Generators;
 using uzSurfaceMapper.Extensions;
-using static uzSurfaceMapper.Core.Generators.MapGenerator;
 
 namespace uzSurfaceMapper.Utils.Generators
 {
@@ -28,13 +24,12 @@ namespace uzSurfaceMapper.Utils.Generators
             //    yield return CreateBuild(bIndex);
 
             foreach (var bIndex in c.listOfIndexBuildings)
-                City.Instance.buildingGenerators.Add(GenerateBuilding(bIndex, config));
+                MapGenerator.CityModel.buildingGenerators.Add(GenerateBuilding(bIndex, config));
         }
 
         private static BuildingGenerator GenerateBuilding(int buildingIndex, BuildingGenerator.Config config)
         {
-            Transform generatedBuild;
-            return GenerateBuilding(buildingIndex, config, out generatedBuild);
+            return GenerateBuilding(buildingIndex, config, out _);
         }
 
         private static BuildingGenerator GenerateBuilding(int buildingIndex, BuildingGenerator.Config config, out Transform generatedBuild)
@@ -47,7 +42,7 @@ namespace uzSurfaceMapper.Utils.Generators
             var build = new GameObject("Build");
             build.transform.parent = builds.transform;
 
-            var building = City.Instance.buildings.ElementAt(buildingIndex);
+            var building = MapGenerator.CityModel.buildings.ElementAt(buildingIndex);
             var height = BuildingPlanner.Instance.buildHeightCurve.GetBuildHeight(building.GetWeight());
             if (config == City.DefaultBuildConfig)
             {

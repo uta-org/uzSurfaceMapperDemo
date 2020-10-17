@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using APIScripts.Utils;
 using Newtonsoft.Json;
 using UnityEngine;
 using uzSurfaceMapper.Model.Enums;
@@ -10,7 +8,6 @@ using uzSurfaceMapper.Core.Generators;
 using uzSurfaceMapper.Extensions;
 using uzSurfaceMapper.Utils.Simplification;
 using static uzSurfaceMapper.Core.Generators.MapGenerator;
-using Color = uzSurfaceMapper.Model.Color;
 using UColor = UnityEngine.Color;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Local

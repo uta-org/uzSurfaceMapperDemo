@@ -23,10 +23,8 @@ namespace uzSurfaceMapper.Model
             if (DefaultBuildConfig == null) DefaultBuildConfig = new BuildingGenerator.Config(); // TODO: Random?
         }
 
-        /// <summary>
-        ///     The instance
-        /// </summary>
-        public static City Instance { get; private set; }
+        //public static City Instance => MapGenerator.Instance.city;
+        // { get; private set; }
 
         // => MapGenerator.Instance.city; // TODO: Use this or use ctor?
 
@@ -136,7 +134,8 @@ namespace uzSurfaceMapper.Model
         /// </summary>
         public City()
         {
-            Instance = this;
+            //Debug.Log("Set city instance!");
+            //Instance = this;
         }
 
         /// <summary>
@@ -178,8 +177,10 @@ namespace uzSurfaceMapper.Model
             //    throw new Exception($"The bounding box of the plane doesn't contains ({x}, {y})"); // You have reached the limit...
 #endif
 
+            var city = MapGenerator.CityModel;
+
             var vector = new Vector2(px, py);
-            debugStr = $"Getting chunk from {Instance.chunks.Count} loaded chunks at {vector} ({x}, {y})!\n\nSConv Instance\n{new string('=', 10)}\n{CityGenerator.SConv}\n\n";
+            debugStr = $"Getting chunk from {city.chunks?.Count} loaded chunks at {vector} ({x}, {y})!\n\nSConv Instance\n{new string('=', 10)}\n{CityGenerator.SConv}\n\n";
 
             //if (!debugOnceFlag)
             //{
@@ -187,8 +188,7 @@ namespace uzSurfaceMapper.Model
             //    debugOnceFlag = true;
             //}
 
-            if (Instance.chunks.Count == 0)
-                // In this case, generate the complete vecindary
+            if (city.chunks?.Count == 0) // In this case, generate the complete neighbors
                 for (var i = -1; i <= 1; ++i)
                     for (var j = -1; j <= 1; ++j)
                     {
@@ -198,7 +198,7 @@ namespace uzSurfaceMapper.Model
                         AddChunk(_x, _y);
                     }
 
-            var chunk = Instance.chunks
+            var chunk = city.chunks?
                 .FirstOrDefault(c => c.r
                     .Contains(vector)) ?? AddChunk(px, py); // , c.xMax <= 0 || c.yMax <= 0
 
@@ -209,11 +209,13 @@ namespace uzSurfaceMapper.Model
         {
             //var scaledSPZ = GetScaledVector(x, y);
 
+            var city = MapGenerator.CityModel;
+
             var sps = CityGenerator.SConv.SinglePlaneSize * 10; // Plane scale is x10 bigger
             float xSingleMinPos = px,
-                ySingleMinPos = py,
-                xSingleMaxPos = sps,
-                ySingleMaxPos = sps;
+                  ySingleMinPos = py,
+                  xSingleMaxPos = sps,
+                  ySingleMaxPos = sps;
 
             var instance = SConvert.Instance;
 
@@ -230,7 +232,7 @@ namespace uzSurfaceMapper.Model
                 var set = SetChunkBuilds(rectOnMap);
                 chunk.listOfIndexBuildings = set;
 
-                //Debug.Log($"Set: {set.Count} buildings. (Loaded: {Instance.buildings.Count}) || Rect: {rectOnMap}");
+                Debug.Log($"Set: {set.Count} buildings. (Loaded: {city.buildings.Count}) || Rect: {rectOnMap}");
             }
 
             if (chunk.roadPoints == null)
@@ -238,14 +240,15 @@ namespace uzSurfaceMapper.Model
             //Debug.Log($"Count of buildings at chunk ({rect.x}, {rect.y}): {_c.listOfBuildings.Count}");
 
             // We add the chunk
-            Instance.chunks.Add(chunk);
+            if (MapGenerator.CityModel.chunks == null) MapGenerator.CityModel.chunks = new HashSet<Chunk>();
+            MapGenerator.CityModel.chunks.Add(chunk);
 
             return chunk;
         }
 
         private static HashSet<int> SetChunkBuilds(Rect rect)
         {
-            return new HashSet<int>(Instance.buildings.Where(building => rect.Contains((Vector2)building.Pol.Center))
+            return new HashSet<int>(MapGenerator.CityModel.buildings.Where(building => rect.Contains((Vector2)building.Pol.Center))
                 .Select(b => b.index));
         }
 

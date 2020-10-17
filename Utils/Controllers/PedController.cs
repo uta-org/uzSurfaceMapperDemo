@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Core;
 using uzSurfaceMapper.Core.Generators;
 using uzSurfaceMapper.Utils.Controllers;
 using TerrainGenerator = uzSurfaceMapper.Utils.Terrains.TerrainGenerator;
 
 namespace uzSurfaceMapper.Utils
 {
-    public class PedController : MonoBehaviour
+    public class PedController : MonoSingleton<PedController>
     {
         private CharacterController characterController;
         private Coroutine m_findGroundCoroutine;
@@ -71,6 +72,11 @@ namespace uzSurfaceMapper.Utils
         public void Teleport(Vector3 position)
         {
             Teleport(position, transform.rotation);
+        }
+
+        public void FindGround()
+        {
+            FindGround(new FindGroundParams());
         }
 
         public void FindGround(FindGroundParams parameters)

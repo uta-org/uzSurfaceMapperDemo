@@ -11,6 +11,7 @@ using uzSurfaceMapper.Core.Attrs;
 using uzSurfaceMapper.Core.Func;
 using uzSurfaceMapper.Extensions;
 using uzSurfaceMapper.Model;
+using uzSurfaceMapper.Utils;
 using uzSurfaceMapper.Utils.Benchmarks;
 using uzSurfaceMapper.Utils.Benchmarks.Impl;
 using F = uzSurfaceMapper.Extensions.F;
@@ -76,6 +77,8 @@ namespace uzSurfaceMapper.Core.Generators
         ///     Occurs when [is city loaded].
         /// </summary>
         public Action<bool> isCityLoaded;
+
+        public static bool isCityGenerated;
 
         /// <summary>
         ///     Gets the city json path.
@@ -156,12 +159,23 @@ namespace uzSurfaceMapper.Core.Generators
                 Debug.Log("Starting loading city from file!");
 
                 //if (playerObject != null)
-                holdPosition = FirstPersonController.Pos;
+                var holdPosition = FirstPersonController.Pos;
                 //holdPosition.y = 100;
-                OnGenerationFinished += () =>
+                //characterController.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionY;
+
+                OnGenerationFinishedEvent += () =>
                 {
-                    Debug.Log($"Set player position on generation finished! {holdPosition} -> {FirstPersonController.Pos}");
+                    //Debug.Log($"Set player position on generation finished! {FirstPersonController.Pos} -> {holdPosition}");
+                    //FirstPersonController.Pos = holdPosition;
+                    //FirstPersonController.Positions.Enqueue(holdPosition); // Use late update
+
+                    Debug.Log("Unfreezing player!");
+                    characterController.enabled = false;
                     FirstPersonController.Pos = holdPosition;
+                    PedController.Instance.FindGround();
+                    characterController.enabled = true;
+
+                    //characterController.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
                 };
 
                 // playerObject.transform.position;
@@ -186,6 +200,7 @@ namespace uzSurfaceMapper.Core.Generators
                     AsyncHelper.RunAsync(cityAsync, cityResult =>
                     {
                         city = cityResult;
+                        CityModel = city;
                         Debug.Log($"Deserialized city with {city.BuildingCount} buildings!");
                         isCityReady = true;
                     });
@@ -221,6 +236,8 @@ namespace uzSurfaceMapper.Core.Generators
 #endif
         }
 
+#if UNITY_WEBGL
+
         private void OnGUI()
         {
             if (isCityReady)
@@ -229,6 +246,8 @@ namespace uzSurfaceMapper.Core.Generators
             UIUtils.DrawBar(CityProgressRect, Progress, UColor.white, UColor.gray, 1);
             GUI.Label(CityProgressRect, $"City progress: {Progress * 100:F2} %", LabelStyle);
         }
+
+#endif
 
         protected override IEnumerator SerializeBin()
         {
@@ -245,8 +264,9 @@ namespace uzSurfaceMapper.Core.Generators
         {
             base.InvokeAtUpdate();
 
-            if (DoesCityFileExists && !IsReady && characterController != null)
-                FirstPersonController.Pos = holdPosition;
+            //if (DoesCityFileExists && !IsReady && characterController != null)
+            //if (DoesCityFileExists && !isCityGenerated && characterController != null)
+            //    FirstPersonController.Positions.Enqueue(holdPosition);
         }
 
         /// <summary>
