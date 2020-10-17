@@ -1,16 +1,26 @@
 ﻿using System;
 using System.Collections;
-using System.IO;
+using APIScripts.Utils;
 using CielaSpike;
 using UnityEngine;
-using UnityEngine.Utils.DebugTools;
+using UnityEngine.Extensions;
+using UnityEngine.UI;
 using UnityGif;
+using UnityStandardAssets.Characters.FirstPerson;
 using uzSurfaceMapper.Core.Attrs;
 using uzSurfaceMapper.Core.Func;
 using uzSurfaceMapper.Extensions;
 using uzSurfaceMapper.Model;
 using uzSurfaceMapper.Utils.Benchmarks;
 using uzSurfaceMapper.Utils.Benchmarks.Impl;
+using F = uzSurfaceMapper.Extensions.F;
+using UColor = UnityEngine.Color;
+
+#if UNITY_WEBGL
+
+using File = uzSurfaceMapperDemo.Utils.File;
+
+#endif
 
 namespace uzSurfaceMapper.Core.Generators
 {
@@ -18,8 +28,9 @@ namespace uzSurfaceMapper.Core.Generators
     {
         /// <summary>
         ///     The real scale zoom (if the map texture is 7000x5000 this will generate a plane of 42kmx30km)
+        ///     Default: 4 (old: 6)
         /// </summary>
-        public float realScaleZoom = 1;
+        public float realScaleZoom = 4;
 
         /// <summary>
         ///     The conversion factor
@@ -28,6 +39,7 @@ namespace uzSurfaceMapper.Core.Generators
 
         /// <summary>
         ///     The single plane size
+        ///     Default: 12.2 (old 33.3)
         /// </summary>
         private float singlePlaneSize = -1;
 
@@ -46,14 +58,9 @@ namespace uzSurfaceMapper.Core.Generators
         public UniGif.GifFile loadingGif;
 
         /// <summary>
-        ///     The hold position
-        /// </summary>
-        private Vector3 holdPosition;
-
-        /// <summary>
         ///     The character controller
         /// </summary>
-        private CharacterController characterController;
+        private CharacterController characterController; // TODO: remove...
 
         /// <summary>
         ///     The current load progress
@@ -77,6 +84,10 @@ namespace uzSurfaceMapper.Core.Generators
         ///     The city json path.
         /// </value>
         protected static string CityJSONPath => GetOutputSavePath();
+
+        protected static string CityBINPath => GetOutputSavePath("city", "bin");
+
+        private float Progress { get; set; }
 
         [InvokeAtAwake]
         public override void InvokeAtAwake()
@@ -118,7 +129,8 @@ namespace uzSurfaceMapper.Core.Generators
                     if (forceTerrainGen && !continueWhenFinish)
                         return;
 
-                    ThreadedDebug.Log("Starting building city!");
+                    //ThreadedDebug.Log("Starting building city!");  TODO: ThreadedDebug is incompatible
+                    Debug.Log("Starting building city!");
 
                     //if (testOneBuild)
                     //    TestOneBuild();
@@ -126,22 +138,67 @@ namespace uzSurfaceMapper.Core.Generators
                 }
             };
 
-            DoesCityFileExists = File.Exists(CityJSONPath);
+            string path;
+
+#if !UNITY_WEBGL
+            path = CityJSONPath;
+#else
+            path = CityBINPath;
+#endif
+
+            DoesCityFileExists = File.Exists(path);
+
+            characterController = FindObjectOfType<CharacterController>();
 
             if (DoesCityFileExists)
             {
-                ThreadedDebug.Log("Starting loading city from file!");
+                //ThreadedDebug.Log("Starting loading city from file!");
+                Debug.Log("Starting loading city from file!");
 
-                if (playerObject != null)
-                    holdPosition = playerObject.transform.position;
+                //if (playerObject != null)
+                holdPosition = FirstPersonController.Pos;
+                //holdPosition.y = 100;
+                OnGenerationFinished += () =>
+                {
+                    Debug.Log($"Set player position on generation finished! {holdPosition} -> {FirstPersonController.Pos}");
+                    FirstPersonController.Pos = holdPosition;
+                };
 
+                // playerObject.transform.position;
+
+#if !UNITY_WEBGL
                 StartCoroutine(AsyncReadAllFileText(s =>
                 {
                     city = s.Deserialize<City>();
                     Debug.Log($"Deserialized city with {city.BuildingCount} buildings!");
 
-                    IsReady = true;
+                    isCityReady = true;
                 }));
+#else
+                var url = WebRequestUtils.MakeInitialUrl(path);
+                Debug.Log($"City: '{path}' -> '{url}'");
+                url.ReadDataFromWebAsync(result =>
+                {
+                    Func<City> cityAsync = () => F.Deserialize<City>(result, evnt =>
+                    {
+                        Progress = evnt.Progress;
+                    });
+                    AsyncHelper.RunAsync(cityAsync, cityResult =>
+                    {
+                        city = cityResult;
+                        Debug.Log($"Deserialized city with {city.BuildingCount} buildings!");
+                        isCityReady = true;
+                    });
+                });
+
+                //StartCoroutine(F.AsyncReadFileWithWWW<byte[]>(path, s =>
+                //{
+                //    city = F.Deserialize<City>(s);
+                //    Debug.Log($"Deserialized city with {city.BuildingCount} buildings!");
+
+                //    isCityReady = true;
+                //}));
+#endif
             }
             else
             {
@@ -150,6 +207,46 @@ namespace uzSurfaceMapper.Core.Generators
 
                 isCityLoaded(false);
             }
+
+#if UNITY_WEBGL
+            //Debug.Log(CityBINPath);
+            //Debug.Log($"Exists: {File.Exists(CityBINPath)}\n" +
+            //          $"City exists: {DoesCityFileExists}\n" +
+            //          $"if: {!File.Exists(CityBINPath) && DoesCityFileExists}");
+            if (!File.Exists(CityBINPath) && DoesCityFileExists)
+            {
+                Debug.Log("Started coroutine!");
+                StartCoroutine(SerializeBin());
+            }
+#endif
+        }
+
+        private void OnGUI()
+        {
+            if (isCityReady)
+                return;
+
+            UIUtils.DrawBar(CityProgressRect, Progress, UColor.white, UColor.gray, 1);
+            GUI.Label(CityProgressRect, $"City progress: {Progress * 100:F2} %", LabelStyle);
+        }
+
+        protected override IEnumerator SerializeBin()
+        {
+            Debug.Log($"Waiting city to be deserialized in order to serialize to '{CityBINPath}'...");
+            yield return new WaitUntil(() => isCityReady);
+            Debug.Log($"Serializing '{CityBINPath}'!");
+
+            // ReSharper disable once InvokeAsExtensionMethod
+            File.WriteAllBytes(CityBINPath, F.Serialize(city, null));
+        }
+
+        [InvokeAtUpdate]
+        public override void InvokeAtUpdate()
+        {
+            base.InvokeAtUpdate();
+
+            if (DoesCityFileExists && !IsReady && characterController != null)
+                FirstPersonController.Pos = holdPosition;
         }
 
         /// <summary>

@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using uzSurfaceMapper.Model;
+using System.Collections.Generic;
 using uzSurfaceMapper.Extensions;
 using static uzSurfaceMapper.Core.Generators.MapGenerator;
 
@@ -10,12 +9,12 @@ namespace uzSurfaceMapper.Model
     public class RoadNode : IPathNode
     {
         //[JsonConverter(typeof(RoadNodeConverter))]
-        public ConcurrentBag<int> Connections { get; set; } // TODO: IPathNode<T> + RoadNode : IPathNode<RoadNode> + Connections (ConcurrentBag<RoadNode>), but can't be serialized due to StackOverflow and OutOfMemory exceptions
+        public List<int> Connections { get; set; } // TODO: IPathNode<T> + RoadNode : IPathNode<RoadNode> + Connections (ConcurrentBag<RoadNode>), but can't be serialized due to StackOverflow and OutOfMemory exceptions
 
         public Point Position { get; set; }
         public bool Invalid { get; set; }
         public int Thickness { get; set; }
-        public ConcurrentBag<int> ParentNodes { get; set; }
+        public List<int> ParentNodes { get; set; }
 
         public RoadNode()
         {

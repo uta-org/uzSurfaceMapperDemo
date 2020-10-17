@@ -10,6 +10,7 @@ using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using APIScripts.Utils;
 using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Model;
 using uzSurfaceMapper.Model.Enums;
@@ -35,6 +36,12 @@ using Object = UnityEngine.Object;
 using Random = System.Random;
 using SConvert = uzSurfaceMapper.Core.Func.SceneConversion;
 using Task = System.Threading.Tasks.Task;
+
+#if UNITY_WEBGL
+
+using File = uzSurfaceMapperDemo.Utils.File;
+
+#endif
 
 namespace uzSurfaceMapper.Extensions
 {
@@ -735,7 +742,7 @@ namespace uzSurfaceMapper.Extensions
         public static void FloodFill<T>(this T[] source, int x, int y, int width, int height, T target, T replacement)
             where T : IEquatable<T>
         {
-            source.FloodFill(x, y, width, height, target, replacement, out int _, null);
+            source.FloodFill(x, y, width, height, target, replacement, out var _, null);
         }
 
         /// <summary>
@@ -1321,6 +1328,7 @@ namespace uzSurfaceMapper.Extensions
             return animationCurve.Evaluate(weight);
         }
 
+#if !UNITY_WEBGL
         /// <summary>
         ///     Percentiles the specified percentile.
         /// </summary>
@@ -1352,6 +1360,7 @@ namespace uzSurfaceMapper.Extensions
             foreach (var t in ts)
                 yield return t;
         }
+#endif
 
         // TODO: This not needed anymore. This implementation was used to created a building on the old 2018 way.
         ///// <summary>
@@ -1578,16 +1587,47 @@ namespace uzSurfaceMapper.Extensions
         /// <param name="finishedReading">The finished reading.</param>
         /// <returns></returns>
         [MustBeReviewed]
-        public static IEnumerator AsyncReadFileWithWWW(string pathOrUrl, Action<float> updatePerc,
-            Action<string> finishedReading)
+        public static IEnumerator AsyncReadFileWithWWW<T>(string pathOrUrl)
+        {
+            return AsyncReadFileWithWWW<T>(pathOrUrl, null);
+        }
+
+        /// <summary>
+        ///     Asynchronouses the read file with WWW.
+        /// </summary>
+        /// <param name="pathOrUrl">The path or URL.</param>
+        /// <param name="updatePerc">The update perc.</param>
+        /// <param name="finishedReading">The finished reading.</param>
+        /// <returns></returns>
+        [MustBeReviewed]
+        public static IEnumerator AsyncReadFileWithWWW<T>(string pathOrUrl,
+            Action<T> finishedReading)
+        {
+            return AsyncReadFileWithWWW(pathOrUrl, null, finishedReading);
+        }
+
+        /// <summary>
+        ///     Asynchronouses the read file with WWW.
+        /// </summary>
+        /// <param name="pathOrUrl">The path or URL.</param>
+        /// <param name="updatePerc">The update perc.</param>
+        /// <param name="finishedReading">The finished reading.</param>
+        /// <returns></returns>
+        [MustBeReviewed]
+        public static IEnumerator AsyncReadFileWithWWW<T>(string pathOrUrl, Action<float> updatePerc,
+            Action<T> finishedReading)
         {
             var fileInfo = new FileInfo(pathOrUrl);
 
+#if !UNITY_WEBGL
             float length = fileInfo.Length;
 
             // Application.isEditor && ??? // Must review
             if (Path.IsPathRooted(pathOrUrl))
                 pathOrUrl = "file:///" + pathOrUrl;
+#else
+            float length = 1;
+#endif
 
             using (var www = new UnityWebRequest(pathOrUrl))
             {
@@ -1602,9 +1642,12 @@ namespace uzSurfaceMapper.Extensions
                 }
 
                 if (www.isHttpError || www.isNetworkError)
+                {
                     Debug.Log("Error while downloading data: " + www.error);
+                    finishedReading(default);
+                }
                 else
-                    finishedReading(www.downloadHandler.text);
+                    finishedReading((T)(typeof(T) == typeof(string) ? (object)www.downloadHandler.text : www.downloadHandler.data));
             }
         }
 
@@ -2760,12 +2803,12 @@ namespace uzSurfaceMapper.Extensions
 
              */
 
-            for (int i = -gridSize; i <= gridSize; i++)
+            for (var i = -gridSize; i <= gridSize; i++)
             {
-                int topIndex = useYInverted
+                var topIndex = useYInverted
                     ? PSafe(x + i, y - gridSize, width, height, out var isTopOut)
                     : PnSafe(x + i, y - gridSize, width, height, out isTopOut);
-                int bottomIndex = useYInverted
+                var bottomIndex = useYInverted
                     ? PSafe(x + i, y + gridSize, width, height, out var isBottomOut)
                     : PnSafe(x + i, y + gridSize, width, height, out isBottomOut);
 
@@ -2787,10 +2830,10 @@ namespace uzSurfaceMapper.Extensions
 
                 if (Mathf.Abs(i) != gridSize)
                 {
-                    int leftIndex = useYInverted
+                    var leftIndex = useYInverted
                         ? PSafe(x + gridSize, y + i, width, height, out var isLeftOut)
                         : PnSafe(x + gridSize, y + i, width, height, out isLeftOut);
-                    int rightIndex = useYInverted
+                    var rightIndex = useYInverted
                         ? PSafe(x - gridSize, y + i, width, height, out var isRightOut)
                         : PnSafe(x - gridSize, y + i, width, height, out isRightOut);
 
@@ -2849,12 +2892,12 @@ namespace uzSurfaceMapper.Extensions
 
              */
 
-            for (int i = -gridSize; i <= gridSize; i++)
+            for (var i = -gridSize; i <= gridSize; i++)
             {
-                int topIndex = useYInverted
+                var topIndex = useYInverted
                     ? PSafe(x + i, y - gridSize, width, height, out var isTopOut)
                     : PnSafe(x + i, y - gridSize, width, height, out isTopOut);
-                int bottomIndex = useYInverted
+                var bottomIndex = useYInverted
                     ? PSafe(x + i, y + gridSize, width, height, out var isBottomOut)
                     : PnSafe(x + i, y + gridSize, width, height, out isBottomOut);
 
@@ -2876,10 +2919,10 @@ namespace uzSurfaceMapper.Extensions
 
                 if (Mathf.Abs(i) != gridSize)
                 {
-                    int leftIndex = useYInverted
+                    var leftIndex = useYInverted
                         ? PSafe(x + gridSize, y + i, width, height, out var isLeftOut)
                         : PnSafe(x + gridSize, y + i, width, height, out isLeftOut);
-                    int rightIndex = useYInverted
+                    var rightIndex = useYInverted
                         ? PSafe(x - gridSize, y + i, width, height, out var isRightOut)
                         : PnSafe(x - gridSize, y + i, width, height, out isRightOut);
 
@@ -3167,6 +3210,7 @@ namespace uzSurfaceMapper.Extensions
             return (lastValue * times + value) / ++times;
         }
 
+#if !UNITY_WEBGL
         /// <summary>
         /// Sizes the of.
         /// </summary>
@@ -3213,6 +3257,7 @@ namespace uzSurfaceMapper.Extensions
 
             return sizeOfInt * xRes * zRes * 6 + sizeOfVector3 * (xRes + 1) * (zRes + 1);
         }
+#endif
 
         /// <summary>
         /// Clones the terrain.
@@ -3291,7 +3336,7 @@ namespace uzSurfaceMapper.Extensions
         {
             var newColors = new Color[length];
 
-            int index = 0;
+            var index = 0;
             while (colors.MoveNext())
             {
                 newColors[index] = (Color)colors.Current;
@@ -3324,7 +3369,7 @@ namespace uzSurfaceMapper.Extensions
         /// <returns></returns>
         public static Point GetNearestCell(this Vector2[] cells, int x, int y, int cellSize, int width, int height, Dictionary<int, Vector2[]> dict)
         {
-            int myIndex = GetGridIndex(x, y, width, cellSize);
+            var myIndex = GetGridIndex(x, y, width, cellSize);
             var neighbours = dict.ContainsKey(myIndex)
                 ? dict[myIndex]
                 : null;
@@ -3347,7 +3392,7 @@ namespace uzSurfaceMapper.Extensions
         public static IEnumerable<int> GetGridBoundingNeighboursIndexes(int x, int y, int width, int height, int cellSize)
         {
             // myIndex
-            yield return GetGridIndex(x, y, width, cellSize, out int nx, out int ny);
+            yield return GetGridIndex(x, y, width, cellSize, out var nx, out var ny);
 
             // Corners
             if (nx == 0 && ny == 0)
@@ -3464,7 +3509,7 @@ namespace uzSurfaceMapper.Extensions
         internal static int GetNoOverlappingGridIndex(this Dictionary<int, Vector2[]> dict, int x, int y, int width, int cellSize, out int nx, out int ny)
         {
             int index;
-            int c = 0;
+            var c = 0;
 
             do
             {
@@ -3629,8 +3674,8 @@ namespace uzSurfaceMapper.Extensions
         /// <returns></returns>
         public static Point ToPoint(this int intPt)
         {
-            int x = (intPt & 0xFF00) >> 16;
-            int y = intPt & 0x00FF;
+            var x = (intPt & 0xFF00) >> 16;
+            var y = intPt & 0x00FF;
 
             return new Point(x, y);
         }
@@ -3667,8 +3712,8 @@ namespace uzSurfaceMapper.Extensions
         /// <returns></returns>
         public static PointL ToPoint(this long longPt)
         {
-            long x = (longPt & 0xFFFF0000) >> 32;
-            long y = longPt & 0x0000FFFF;
+            var x = (longPt & 0xFFFF0000) >> 32;
+            var y = longPt & 0x0000FFFF;
 
             return new PointL(x, y);
         }
@@ -3696,8 +3741,8 @@ namespace uzSurfaceMapper.Extensions
         /// <returns></returns>
         public static float GetDistance(float x0, float y0, float x1, float y1)
         {
-            float deltaX = x1 - x0;
-            float deltaY = y1 - y0;
+            var deltaX = x1 - x0;
+            var deltaY = y1 - y0;
 
             return (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
         }
@@ -3714,9 +3759,9 @@ namespace uzSurfaceMapper.Extensions
         /// <returns></returns>
         public static float GetDistance(float x0, float y0, float z0, float x1, float y1, float z1)
         {
-            float deltaX = x1 - x0;
-            float deltaY = y1 - y0;
-            float deltaZ = z1 - z0;
+            var deltaX = x1 - x0;
+            var deltaY = y1 - y0;
+            var deltaZ = z1 - z0;
 
             return (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
         }
@@ -3764,12 +3809,12 @@ namespace uzSurfaceMapper.Extensions
                 //customMessages.Add("from above");
             }
 
-            for (int i = 0; i < raycastPositions.Count; i++)
+            for (var i = 0; i < raycastPositions.Count; i++)
             {
                 //if (Physics.Raycast(raycastPositions[i], raycastDirections[i], out hit, raycastDistance, raycastLayerMask))
 
                 RaycastHit hit;
-                bool hitBool = raycastDistance > 0
+                var hitBool = raycastDistance > 0
                     ? Physics.Raycast(raycastPositions[i], raycastDirections[i], out hit, raycastDistance)
                     : Physics.Raycast(raycastPositions[i], raycastDirections[i], out hit);
 
@@ -3791,7 +3836,7 @@ namespace uzSurfaceMapper.Extensions
             if (source == null)
                 return dictionary;
 
-            foreach (TSource element in source)
+            foreach (var element in source)
                 dictionary[keySelector(element)] = elementSelector(element);
 
             return dictionary;
@@ -3802,6 +3847,99 @@ namespace uzSurfaceMapper.Extensions
             return inverted
                 ? P(p.x, p.y, mapWidth, mapHeight)
                 : Pn(p.x, p.y, mapWidth);
+        }
+
+        ///// <summary>
+        /////     Creates the texture.
+        ///// </summary>
+        ///// <param name="width">The width.</param>
+        ///// <param name="height">The height.</param>
+        ///// <param name="color">The color.</param>
+        ///// <returns></returns>
+        //public static Texture2D CreateTexture(int width, int height, UEColor color)
+        //{
+        //    var pixels = new UEColor[width * height];
+
+        //    for (var i = 0; i < pixels.Length; i++)
+        //        pixels[i] = color;
+
+        //    var texture = new Texture2D(width, height);
+        //    texture.SetPixels(pixels);
+        //    texture.Apply();
+
+        //    return texture;
+        //}
+
+        ///// <summary>
+        /////     To the texture.
+        ///// </summary>
+        ///// <param name="color">The color.</param>
+        ///// <param name="width">The width.</param>
+        ///// <param name="height">The height.</param>
+        ///// <returns></returns>
+        //public static Texture2D ToTexture(this UEColor color, int width, int height)
+        //{
+        //    return CreateTexture(width, height, color);
+        //}
+
+        ///// <summary>
+        /////     To the texture.
+        ///// </summary>
+        ///// <param name="color">The color.</param>
+        ///// <returns></returns>
+        //public static Texture2D ToTexture(this UEColor color)
+        //{
+        //    return CreateTexture(1, 1, color);
+        //}
+
+        ///// <summary>
+        /////     To the texture.
+        ///// </summary>
+        ///// <param name="color">The color.</param>
+        ///// <returns></returns>
+        //public static Texture2D ToTexture(this Color32 color)
+        //{
+        //    return ((UEColor)color).ToTexture();
+        //}
+
+        // Serialize collection of any type to a byte stream
+
+        public static byte[] Serialize<T>(this T obj, FloatProgressChangedEventHandler callback)
+        {
+            //if (callback == null) throw new ArgumentNullException(nameof(callback));
+
+            using (var stream = new ProgressStream())
+            {
+                stream.ProgressChanged += callback;
+
+                var binSerializer = new BinaryFormatter();
+                binSerializer.Serialize(stream, obj);
+                return stream.ToArray();
+            }
+        }
+
+        // DSerialize collection of any type to a byte stream
+
+        public static T Deserialize<T>(this byte[] serializedObj, FloatProgressChangedEventHandler callback)
+        {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+
+            T obj;
+            using (var stream = new ProgressStream(serializedObj))
+            {
+                stream.ProgressChanged += callback;
+
+                var binSerializer = new BinaryFormatter();
+                obj = (T)binSerializer.Deserialize(stream);
+            }
+            return obj;
+        }
+
+        public static void ReadDataFromWebAsync(this string url, Action<byte[]> result)
+        {
+            if (result == null) throw new ArgumentNullException(nameof(result));
+            Func<byte[]> readAsync = () => new System.Net.WebClient().DownloadData(url);
+            readAsync.RunAsync(result);
         }
 
 #if UNITY_EDITOR

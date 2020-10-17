@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -34,13 +36,13 @@ namespace uzSurfaceMapper.Core.Generators
 
         #region "Static fields"
 
-        private static bool isReady;
+        protected static bool isCityReady, isRoadReady;
 
         public static bool IsReady
         {
             get => (TextureWorkerBase.WorkersCollection.IsNullOrEmpty() ||
-                    TextureWorkerBase.WorkersCollection.All(x => x.IsReady)) && isReady;
-            set => isReady = value;
+                    TextureWorkerBase.WorkersCollection.All(x => x.IsReady)) && isCityReady && isRoadReady;
+            //set => isReady = value;
         }
 
         /// <summary>
@@ -129,6 +131,19 @@ namespace uzSurfaceMapper.Core.Generators
         public static Color[] mapColors;
 
         public static string RoadJSONPath => GetOutputSavePath("road");
+        public static string RoadBINPath => GetOutputSavePath("road", "bin");
+
+        protected static Rect CityProgressRect => new Rect(Screen.width / 2 - 300, Screen.height - 30, 600, 25);
+        protected static Rect RoadProgressRect => new Rect(Screen.width / 2 - 300, Screen.height - 60, 600, 25);
+
+        protected static GUIStyle LabelStyle => new GUIStyle("label") { alignment = TextAnchor.MiddleCenter, normal = new GUIStyleState { textColor = Color.black } };
+
+        private static bool IsReadyFlagged { get; set; }
+
+        /// <summary>
+        ///     The hold position
+        /// </summary>
+        protected Vector3 holdPosition;
 
         /// <summary>
         ///     Gets a value indicating whether this instance is debugging.
@@ -241,6 +256,19 @@ namespace uzSurfaceMapper.Core.Generators
             TextureBenchmarkData.StopBenchmark(TextureBenchmark.ResourcesLoad);
         }
 
+        [InvokeAtUpdate]
+        public virtual void InvokeAtUpdate()
+        {
+            if (IsReady && !IsReadyFlagged)
+            {
+                OnGenerationFinished();
+                IsReadyFlagged = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.H))
+                FirstPersonController.Pos = holdPosition;
+        }
+
         /// <summary>
         ///     Toggles the player.
         /// </summary>
@@ -275,9 +303,9 @@ namespace uzSurfaceMapper.Core.Generators
         /// </summary>
         /// <param name="root">The root.</param>
         /// <returns></returns>
-        protected static string GetOutputSavePath(string name = "city", bool isDemo = IS_DEMO)
+        protected static string GetOutputSavePath(string name = "city", string extension = "json", bool isDemo = IS_DEMO)
         {
-            string file = Path.Combine(GetStreamingAssetsPath(), isDemo ? "ExampleData" : "Generated Output", $"{name}.json"),
+            string file = Path.Combine(GetStreamingAssetsPath(), isDemo ? "ExampleData" : "Generated Output", $"{name}.{extension}"),
                 folder = Path.GetDirectoryName(file);
 
             if (!Directory.Exists(folder))
@@ -314,6 +342,10 @@ namespace uzSurfaceMapper.Core.Generators
 
             return streamingAssets;
         }
+
+        protected abstract IEnumerator SerializeBin();
+
+        public static event Action OnGenerationFinished = delegate { };
 
 #if IS_DEMO
         protected const bool IS_DEMO = true;
