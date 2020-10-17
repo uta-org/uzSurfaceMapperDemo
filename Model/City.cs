@@ -40,14 +40,14 @@ namespace uzSurfaceMapper.Model
         /// <summary>
         ///     The chunks
         /// </summary>
-        [JsonIgnore] public HashSet<Chunk> chunks = new HashSet<Chunk>();
+        [JsonIgnore, NonSerialized] public HashSet<Chunk> chunks = new HashSet<Chunk>();
 
         /// <summary>
         ///     The bridges
         /// </summary>
-        [JsonIgnore] public List<Bridge> bridges = new List<Bridge>();
+        [JsonIgnore, NonSerialized] public List<Bridge> bridges = new List<Bridge>();
 
-        [JsonIgnore] public List<BuildingGenerator> buildingGenerators = new List<BuildingGenerator>();
+        [JsonIgnore, NonSerialized] public List<BuildingGenerator> buildingGenerators = new List<BuildingGenerator>();
 
         /// <summary>
         ///     The is map plane size set

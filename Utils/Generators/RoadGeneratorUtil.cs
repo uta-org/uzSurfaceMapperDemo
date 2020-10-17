@@ -72,24 +72,27 @@ namespace uzSurfaceMapper.Utils.Generators
                 var itemIndex = pt.GetKey();
                 dictionary.Add(itemIndex, list);
 
-                var node = model.SimplifiedRoadNodes[itemIndex];
-
-                builder?.AppendLine($"\troad iteration: {i}");
-
-                //var conn = node.Connections;
-                var nodes = GetRoadNodes(node, ptVal =>
+                lock (model.SimplifiedRoadNodes)
                 {
-                    if (ptVal.HasValue) queue = new Queue<Point>(queue.Remove(ptVal.Value));
-                    return queue;
-                },
-                    parentNodeIndex => { return dictionary[parentNodeIndex]; },
-                    builder);
+                    var node = model.SimplifiedRoadNodes[itemIndex];
 
-                foreach (var point in nodes)
-                    list.Add(CityGenerator.SConv.GetRealPositionOnMap((Vector2)point).GetHeightForPoint());
+                    builder?.AppendLine($"\troad iteration: {i}");
 
-                yield return list;
-                ++i;
+                    //var conn = node.Connections;
+                    var nodes = GetRoadNodes(node, ptVal =>
+                        {
+                            if (ptVal.HasValue) queue = new Queue<Point>(queue.Remove(ptVal.Value));
+                            return queue;
+                        },
+                        parentNodeIndex => { return dictionary[parentNodeIndex]; },
+                        builder);
+
+                    foreach (var point in nodes)
+                        list.Add(CityGenerator.SConv.GetRealPositionOnMap((Vector2)point).GetHeightForPoint());
+
+                    yield return list;
+                    ++i;
+                }
             }
         }
 
@@ -98,12 +101,15 @@ namespace uzSurfaceMapper.Utils.Generators
             if (queueFunc == null) throw new ArgumentNullException(nameof(queueFunc));
             if (parentFunc == null) throw new ArgumentNullException(nameof(parentFunc));
 
+            //lock (node.Connections) // TODO?
+
             var conn = node.Connections;
             if (conn.IsNullOrEmpty())
             {
                 yield return node.Position;
                 yield break;
             }
+
             if (queueFunc(null).Count == 0) yield break;
 
             ++level;
@@ -141,7 +147,8 @@ namespace uzSurfaceMapper.Utils.Generators
 
         private static RoadNode GetNode(this int index)
         {
-            return RoadGenerator.RoadModel.SimplifiedRoadNodes[index];
+            lock (RoadGenerator.RoadModel.SimplifiedRoadNodes)
+                return RoadGenerator.RoadModel.SimplifiedRoadNodes[index];
         }
 
         public static Road CreateIndependantRoad(this List<Vector3> points)

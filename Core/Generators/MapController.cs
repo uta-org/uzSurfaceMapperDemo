@@ -3,6 +3,9 @@ using uzSurfaceMapper.Model;
 using UnityEngine;
 using UnityEngine.Core;
 using UnityEngine.Extensions;
+
+//using uzSurfaceMapper.Extensions;
+using Color = uzSurfaceMapper.Model.Color;
 using SConvert = uzSurfaceMapper.Core.Func.SceneConversion;
 using Player = UnityStandardAssets.Characters.FirstPerson.FirstPersonController;
 

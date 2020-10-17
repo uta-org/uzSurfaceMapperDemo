@@ -17,15 +17,24 @@ using UColor = UnityEngine.Color;
 
 namespace uzSurfaceMapper.Model
 {
+    [Serializable]
     public class RoadModel : IProgress<float>
     {
         [JsonIgnore] public static UColor[] Colors { get; set; }
-        public ConcurrentHashSet<RoadNode> RoadNodes { get; } = new ConcurrentHashSet<RoadNode>();
-        public ConcurrentDictionary<int, RoadNode> SimplifiedRoadNodes { get; set; }
+        public HashSet<RoadNode> RoadNodes { get; } = new HashSet<RoadNode>();
+        public Dictionary<int, RoadNode> SimplifiedRoadNodes { get; set; }
         public HashSet<Point> IntersectionNodes { get; } = new HashSet<Point>();
         public HashSet<Point> SimplifiedIntersectionNodes { get; private set; }
 
-        [JsonIgnore] public bool Optimized => SimplifiedRoadNodes != null;
+        [JsonIgnore]
+        public bool Optimized
+        {
+            get
+            {
+                lock (SimplifiedRoadNodes)
+                    return SimplifiedRoadNodes != null;
+            }
+        }
 
         public bool AreNodesConnected { get; set; }
 
@@ -59,14 +68,17 @@ namespace uzSurfaceMapper.Model
                 { Index = node.Position.GetKey(), Node = node })
                 .SafeToDictionary(x => x.Index, x => x.Node);
 
-            SimplifiedRoadNodes = new ConcurrentDictionary<int, RoadNode>(nodes
-                .Select(p => new { Index = p.GetKey(), Value = dictionary[p.GetKey()] })
-                .ToDictionary(x => x.Index, x => x.Value));
+            lock (SimplifiedRoadNodes)
+            {
+                SimplifiedRoadNodes = new Dictionary<int, RoadNode>(nodes
+                    .Select(p => new { Index = p.GetKey(), Value = dictionary[p.GetKey()] })
+                    .ToDictionary(x => x.Index, x => x.Value));
 
-            // nodes.Select(p => new { Index =  dictionary[F.P(p.x, p.y, mapWidth, mapHeight)])};
-            //SimplifiedRoadNodes = new HashSet<RoadNode>(nodes.Select(p => dictionary[F.P(p.x, p.y, mapWidth, mapHeight)]));
+                // nodes.Select(p => new { Index =  dictionary[F.P(p.x, p.y, mapWidth, mapHeight)])};
+                //SimplifiedRoadNodes = new HashSet<RoadNode>(nodes.Select(p => dictionary[F.P(p.x, p.y, mapWidth, mapHeight)]));
 
-            Debug.Log($"Optimized roads nodes resulting in {SimplifiedRoadNodes.Count} items.");
+                Debug.Log($"Optimized roads nodes resulting in {SimplifiedRoadNodes.Count} items.");
+            }
             // TODO: Remove near nodes?
 
             //SimplifiedRoadNodes = new HashSet<RoadNode>(nodes.Select(p => new RoadNode(p, -1)));
@@ -94,89 +106,105 @@ namespace uzSurfaceMapper.Model
             if (!Optimized) throw new Exception("Can't connect nodes without optimizing them first.");
             if (AreNodesConnected) return;
 
-            // ReSharper disable once RedundantCast
-            var roadNodes = SimplifiedRoadNodes;
-            //var colors = RoadGenerator.StaticSource;
-            var distance = CityGenerator.SConv.SinglePlaneSize * 15f; // 1.5 * 10
-
-            // Mathf.Pow(CityGenerator.SConv.SinglePlaneSize * 15f, 2); // To compare valid nodes, we must set a limit to operate
-            float count = roadNodes.Count;
-            var length = Colors.Length;
-
-            Debug.Log($"Connecting nodes ({count:F0}) with distance = {distance} ({CityGenerator.SConv.SinglePlaneSize})");
-
-            foreach (var pair in SimplifiedRoadNodes)
+            lock (SimplifiedRoadNodes)
             {
-                //var returnNode = new RoadNode(node.Position, node.Thickness);
+                // ReSharper disable once RedundantCast
+                var roadNodes = SimplifiedRoadNodes;
+                //var colors = RoadGenerator.StaticSource;
+                var distance = CityGenerator.SConv.SinglePlaneSize * 15f; // 1.5 * 10
 
-                var node = pair.Value;
-                var p1 = node.Position;
+                // Mathf.Pow(CityGenerator.SConv.SinglePlaneSize * 15f, 2); // To compare valid nodes, we must set a limit to operate
+                float count = roadNodes.Count;
+                var length = Colors.Length;
 
-                // Compute distance to all nodes...
-                if (IsStopped) return;
-                var distances = roadNodes
-                    .Where(n => n.Value != node)
-                    .Select(n => new { Dictionary = n, Distance = Vector2.Distance(CityGenerator.SConv.GetRealPositionOnMap((Vector2)n.Value.Position), CityGenerator.SConv.GetRealPositionOnMap((Vector2)node.Position)) })
-                    .OrderBy(n => n.Distance);
+                Debug.Log(
+                    $"Connecting nodes ({count:F0}) with distance = {distance} ({CityGenerator.SConv.SinglePlaneSize})");
 
-                foreach (var n in distances)
+                foreach (var pair in SimplifiedRoadNodes)
                 {
-                    if (n.Distance > distance)
-                    {
-                        // skipped due to distance
-                        DistanceSkipped++;
-                        continue;
-                    }
+                    //var returnNode = new RoadNode(node.Position, node.Thickness);
 
-                    var p2 = n.Dictionary.Value.Position;
-                    if (p1 == p2)
-                    {
-                        ++SamePoint;
-                        continue; // skip if same point
-                    }
+                    var node = pair.Value;
+                    var p1 = node.Position;
 
-                    var isValid = Colors.DrawLine(p1, p2, (x, y) =>
-                    {
-                        var index = F.P(x, y, mapWidth, mapHeight);
-
-                        if (SimplifiedRoadNodes.ContainsKey(index) && node.Connections?.Contains(index) == true)
+                    // Compute distance to all nodes...
+                    if (IsStopped) return;
+                    var distances = roadNodes
+                        .Where(n => n.Value != node)
+                        .Select(n => new
                         {
-                            ++OnSameLine;
-                            return false;
+                            Dictionary = n,
+                            Distance = Vector2.Distance(
+                                CityGenerator.SConv.GetRealPositionOnMap((Vector2)n.Value.Position),
+                                CityGenerator.SConv.GetRealPositionOnMap((Vector2)node.Position))
+                        })
+                        .OrderBy(n => n.Distance);
+
+                    foreach (var n in distances)
+                    {
+                        if (n.Distance > distance)
+                        {
+                            // skipped due to distance
+                            DistanceSkipped++;
+                            continue;
                         }
 
-                        if (index < 0 || index >= length)
+                        var p2 = n.Dictionary.Value.Position;
+                        if (p1 == p2)
                         {
-                            if (PrintOutOfIndexErrors) Debug.LogError($"Out of index in ({x}, {y}) -> {index}");
-                            ++OutOfIndexErrors;
-                            return TreatOutOfIndexErrorsAsValid;
+                            ++SamePoint;
+                            continue; // skip if same point
                         }
 
-                        return Colors[index].AsComponentColor() == GroundType.Asphalt.GetColor();
-                    });
+                        lock (node.Connections)
+                            lock (node.ParentNodes)
+                            {
+                                var isValid = Colors.DrawLine(p1, p2, (x, y) =>
+                                {
+                                    var index = F.P(x, y, mapWidth, mapHeight);
 
-                    if (isValid)
-                    {
-                        if (node.Connections == null) node.Connections = new ConcurrentBag<int>();
+                                    if (SimplifiedRoadNodes.ContainsKey(index) && node.Connections?.Contains(index) == true)
+                                    {
+                                        ++OnSameLine;
+                                        return false;
+                                    }
 
-                        var val = n.Dictionary.Value;
-                        var ind = val.GetKey();
+                                    if (index < 0 || index >= length)
+                                    {
+                                        if (PrintOutOfIndexErrors) Debug.LogError($"Out of index in ({x}, {y}) -> {index}");
+                                        ++OutOfIndexErrors;
+                                        return TreatOutOfIndexErrorsAsValid;
+                                    }
 
-                        node.Connections.Add(ind);
+                                    return Colors[index].AsComponentColor() == GroundType.Asphalt.GetColor();
+                                });
 
-                        if (SimplifiedRoadNodes[ind].ParentNodes == null) SimplifiedRoadNodes[ind].ParentNodes = new ConcurrentBag<int>();
-                        SimplifiedRoadNodes[ind].ParentNodes.Add(node.GetKey()); // Add parents back to this node
+                                if (isValid)
+                                {
+                                    if (node.Connections == null) node.Connections = new List<int>();
 
-                        ValidConnections++;
+                                    var val = n.Dictionary.Value;
+                                    var ind = val.GetKey();
+
+                                    node.Connections.Add(ind);
+
+                                    if (SimplifiedRoadNodes[ind].ParentNodes == null)
+                                        SimplifiedRoadNodes[ind].ParentNodes = new List<int>();
+                                    SimplifiedRoadNodes[ind].ParentNodes
+                                        .Add(node.GetKey()); // Add parents back to this node
+
+                                    ValidConnections++;
+                                }
+                                else
+                                    NotValidConnections++;
+                            }
                     }
-                    else
-                        NotValidConnections++;
+
+                    //yield return returnNode;
+
+                    Finish++;
+                    Report(++CurrentStep / count);
                 }
-
-                //yield return returnNode;
-
-                Finish++;
-                Report(++CurrentStep / count);
             }
 
             AreNodesConnected = true;
