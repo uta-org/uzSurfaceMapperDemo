@@ -124,6 +124,8 @@ namespace uzSurfaceMapper.Core.Generators
 #endif
         }
 
+#if UNITY_WEBGL
+
         private void OnGUI()
         {
             if (isRoadReady)
@@ -132,6 +134,8 @@ namespace uzSurfaceMapper.Core.Generators
             UIUtils.DrawBar(RoadProgressRect, DeserializeProgress, UColor.white, UColor.gray, 1);
             GUI.Label(RoadProgressRect, $"Road progress: {DeserializeProgress * 100:F2} %", LabelStyle);
         }
+
+#endif
 
         public void RegisterSharedWorker(IWorkerShareable worker)
         {
