@@ -21,6 +21,10 @@ using UColor = UnityEngine.Color;
 
 using File = uzSurfaceMapperDemo.Utils.File;
 
+#else
+
+using System.IO;
+
 #endif
 
 namespace uzSurfaceMapper.Core.Generators
