@@ -17,6 +17,10 @@ using UColor = UnityEngine.Color;
 
 using File = uzSurfaceMapperDemo.Utils.File;
 
+#else
+
+using System.IO;
+
 #endif
 
 namespace uzSurfaceMapper.Core.Generators
@@ -31,7 +35,7 @@ namespace uzSurfaceMapper.Core.Generators
         public Color32[] Target { get; set; }
         public bool IsGeneratorFinished { get; set; }
 
-        private float Progress { get; set; }
+        private float DeserializeProgress { get; set; }
 
         [InvokeAtAwake]
         public override void InvokeAtAwake()
@@ -84,7 +88,7 @@ namespace uzSurfaceMapper.Core.Generators
                 {
                     Func<RoadModel> roadAsync = () => F.Deserialize<RoadModel>(result, evnt =>
                     {
-                        Progress = evnt.Progress;
+                        DeserializeProgress = evnt.Progress;
                     });
                     AsyncHelper.RunAsync(roadAsync, roadResult =>
                     {
@@ -125,8 +129,8 @@ namespace uzSurfaceMapper.Core.Generators
             if (isRoadReady)
                 return;
 
-            UIUtils.DrawBar(RoadProgressRect, Progress, UColor.white, UColor.gray, 1);
-            GUI.Label(RoadProgressRect, $"Road progress: {Progress * 100:F2} %", LabelStyle);
+            UIUtils.DrawBar(RoadProgressRect, DeserializeProgress, UColor.white, UColor.gray, 1);
+            GUI.Label(RoadProgressRect, $"Road progress: {DeserializeProgress * 100:F2} %", LabelStyle);
         }
 
         public void RegisterSharedWorker(IWorkerShareable worker)
