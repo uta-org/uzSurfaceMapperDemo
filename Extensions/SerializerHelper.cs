@@ -2,7 +2,6 @@
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
-using uzSurfaceMapper.Core.Generators;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -60,7 +59,7 @@ namespace uzSurfaceMapper.Extensions
                 using (var stream = GenerateStreamFromString(data))
                 {
                     var result = xmlSerializer.Deserialize(stream);
-                    return (T) result;
+                    return (T)result;
                 }
             }
             catch (Exception ex)
@@ -84,9 +83,9 @@ namespace uzSurfaceMapper.Extensions
             return stream;
         }
 
-        private static string SerializeToJson<T>(T data)
+        private static string SerializeToJson<T>(T data, bool isDebugging = true)
         {
-            return JsonConvert.SerializeObject(data, !MapGenerator.IsDebugging ? Formatting.Indented : Formatting.None);
+            return JsonConvert.SerializeObject(data, !isDebugging ? Formatting.Indented : Formatting.None);
             // throw new NotImplementedException();
         }
 
