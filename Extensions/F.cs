@@ -92,13 +92,18 @@ namespace DepotToolkit.CommonCode
 
         // DSerialize collection of any type to a byte stream
 
-        public static T Deserialize<T>(this byte[] serializedObj, FloatProgressChangedEventHandler callback)
+        public static T Deserialize<T>(this string str, FloatProgressChangedEventHandler callback)
+        {
+            return Encoding.UTF8.GetBytes(str.ToCharArray()).Deserialize<T>(callback);
+        }
+
+        public static T Deserialize<T>(this byte[] data, FloatProgressChangedEventHandler callback)
         {
             if (callback == null) throw new ArgumentNullException(nameof(callback));
 
             T obj;
             var serializer = new JsonSerializer();
-            using (var stream = new ProgressStream(serializedObj))
+            using (var stream = new ProgressStream(data))
             {
                 stream.ProgressChanged += callback;
 
