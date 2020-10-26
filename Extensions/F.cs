@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Threading.Tasks;
+using APIScripts.Utils;
+using Newtonsoft.Json;
 
 namespace DepotToolkit.CommonCode
 {
@@ -38,5 +38,98 @@ namespace DepotToolkit.CommonCode
 
             return derivedObj;
         }
+
+        public static byte[] SerializeBin<T>(this T obj, FloatProgressChangedEventHandler callback)
+        {
+            //if (callback == null) throw new ArgumentNullException(nameof(callback));
+
+            using (var stream = new ProgressStream())
+            {
+                stream.ProgressChanged += callback;
+
+                var binSerializer = new BinaryFormatter();
+                binSerializer.Serialize(stream, obj);
+                return stream.ToArray();
+            }
+        }
+
+        // DSerialize collection of any type to a byte stream
+
+        public static T DeserializeBin<T>(this byte[] serializedObj, FloatProgressChangedEventHandler callback)
+        {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+
+            T obj;
+            using (var stream = new ProgressStream(serializedObj))
+            {
+                stream.ProgressChanged += callback;
+
+                var binSerializer = new BinaryFormatter();
+                obj = (T)binSerializer.Deserialize(stream);
+            }
+            return obj;
+        }
+
+        public static byte[] Serialize<T>(this T obj, FloatProgressChangedEventHandler callback)
+        {
+            //if (callback == null) throw new ArgumentNullException(nameof(callback));
+
+            var serializer = new JsonSerializer();
+            using (var stream = new ProgressStream())
+            {
+                stream.ProgressChanged += callback;
+
+                //var binSerializer = new BinaryFormatter();
+                //binSerializer.Serialize(stream, obj);
+                //return stream.ToArray();
+                using (var writer = new StreamWriter(stream))
+                using (var jsonTextWriter = new JsonTextWriter(writer))
+                    serializer.Serialize(jsonTextWriter, obj);
+
+                return stream.ToArray();
+            }
+        }
+
+        // DSerialize collection of any type to a byte stream
+
+        public static T Deserialize<T>(this byte[] serializedObj, FloatProgressChangedEventHandler callback)
+        {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+
+            T obj;
+            var serializer = new JsonSerializer();
+            using (var stream = new ProgressStream(serializedObj))
+            {
+                stream.ProgressChanged += callback;
+
+                //var binSerializer = new BinaryFormatter();
+                //obj = (T)binSerializer.Deserialize(stream);
+
+                using (var reader = new StreamReader(stream, Encoding.UTF8))
+                using (var jsonTextReader = new JsonTextReader(reader))
+                {
+                    obj = (T)serializer.Deserialize(jsonTextReader);
+                }
+            }
+            return obj;
+        }
+
+        /*
+         * Thanks to: https://stackoverflow.com/questions/38445215/progress-while-deserializing-json
+            public JObject DeserializeViaStream(string filename)
+            {
+                object obj;
+                var serializer = new JsonSerializer();
+                using (var sr = new StreamReader(new FileStream(filename, FileMode.Open)))
+                {
+                    using (var jsonTextReader = new JsonTextReader(sr))
+                    {
+                        obj = serializer.Deserialize(jsonTextReader);
+                    }
+                }
+                return (JObject) obj;
+            }
+         *
+         */
     }
 }
