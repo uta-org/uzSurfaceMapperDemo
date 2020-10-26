@@ -79,9 +79,6 @@ namespace DepotToolkit.CommonCode
             {
                 stream.ProgressChanged += callback;
 
-                //var binSerializer = new BinaryFormatter();
-                //binSerializer.Serialize(stream, obj);
-                //return stream.ToArray();
                 using (var writer = new StreamWriter(stream))
                 using (var jsonTextWriter = new JsonTextWriter(writer))
                     serializer.Serialize(jsonTextWriter, obj);
@@ -90,7 +87,7 @@ namespace DepotToolkit.CommonCode
             }
         }
 
-        // DSerialize collection of any type to a byte stream
+        // Deserialize collection of any type to a byte stream
 
         public static T Deserialize<T>(this string str, FloatProgressChangedEventHandler callback)
         {
@@ -107,13 +104,11 @@ namespace DepotToolkit.CommonCode
             {
                 stream.ProgressChanged += callback;
 
-                //var binSerializer = new BinaryFormatter();
-                //obj = (T)binSerializer.Deserialize(stream);
-
                 using (var reader = new StreamReader(stream, Encoding.UTF8))
                 using (var jsonTextReader = new JsonTextReader(reader))
                 {
-                    obj = (T)serializer.Deserialize(jsonTextReader);
+                    var wrapperObj = serializer.Deserialize(jsonTextReader, typeof(T));
+                    obj = (T)wrapperObj;
                 }
             }
 
