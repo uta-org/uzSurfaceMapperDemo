@@ -116,7 +116,20 @@ namespace DepotToolkit.CommonCode
                     obj = (T)serializer.Deserialize(jsonTextReader);
                 }
             }
+
             return obj;
+        }
+
+        public static string ReadFile(string path, FloatProgressChangedEventHandler callback)
+        {
+            using (var destination = new MemoryStream())
+            using (var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var stream = new ProgressBaseStream(source))
+            {
+                stream.ProgressChanged += callback;
+                stream.CopyTo(destination);
+                return Encoding.UTF8.GetString(destination.ToArray());
+            }
         }
 
         /*
