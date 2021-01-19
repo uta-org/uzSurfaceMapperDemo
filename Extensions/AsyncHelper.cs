@@ -140,6 +140,7 @@ namespace UnityEngine.Extensions
             return worker;
         }
 
+#if !UZSURFACEMAPPER
         /// <summary>
         ///     Run a function asynchronously.
         /// </summary>
@@ -170,6 +171,7 @@ namespace UnityEngine.Extensions
 
             return worker;
         }
+#endif
 
         public static BackgroundWorker RunAsync<T1, TR>(this Func<T1, TR> func, T1 arg1, Action<T1, TR> result = null)
         {
