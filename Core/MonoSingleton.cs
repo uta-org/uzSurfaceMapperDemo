@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Threading;
 using DepotToolkit.CommonCode;
+#if !UZSURFACEMAPPER
 using DepotToolkit.Utils;
+#endif
 using uzLib.Lite.ExternalCode.Extensions;
+#if !UZSURFACEMAPPER
 using uzSourceToolkit.ThirdParty.uSrcTools.Extensions;
+#endif
 
 namespace UnityEngine.Core
 {
@@ -56,9 +60,11 @@ namespace UnityEngine.Core
                         {
                             // Call with the Dispatcher...
 
+#if !UZSURFACEMAPPER
                             var job = new JobWrapper<T>(Impl_GetInstance);
                             job.ExecuteSync();
                             m_Instance = job.Result;
+#endif
                         }
 
                         // Create new instance if one doesn't already exist.
@@ -74,13 +80,19 @@ namespace UnityEngine.Core
                                 //((MonoSingleton<T>)m_Instance).IsStarted = false;
 
                                 // Make instance persistent.
+#if !UZSURFACEMAPPER
                                 if (IsPlaying()) ThreadSafeUtils.ExecuteInUnityThread(() => DontDestroyOnLoad(singletonObject)); // TODO
+#endif
                             }
-                            catch (UnityException)
+                            catch (UnityException ex)
                             {
+#if !UZSURFACEMAPPER
                                 var singletonObject = CreateGameObject();
                                 m_Instance = AddComponent<T>(singletonObject);
                                 ThreadSafeUtils.ExecuteInUnityThread(() => singletonObject.name = typeof(T).Name + " (Singleton)");
+#else
+                                Debug.LogException(ex);
+#endif
                             }
                         }
                     }
@@ -112,6 +124,7 @@ namespace UnityEngine.Core
             result = obj.AddComponent<TMethod>();
         }
 
+#if !UZSURFACEMAPPER
         private static GameObject CreateGameObject()
         {
             var job = new JobWrapper<GameObject>(Impl_CreateInstance);
@@ -135,9 +148,11 @@ namespace UnityEngine.Core
         }
 
         public bool ExecuteInEditMode => GetType().IsExecutingInEditMode();
+#endif
 
         public bool IsStarted { get; set; }
 
+#if !UZSURFACEMAPPER
         public static T Create()
         {
             var go = new GameObject(typeof(T).Name);
@@ -153,6 +168,7 @@ namespace UnityEngine.Core
         {
             if (!ExecuteInEditMode) m_ShuttingDown = true;
         }
+#endif
     }
 
 #endif

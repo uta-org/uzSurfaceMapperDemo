@@ -385,7 +385,11 @@ namespace UnityEngine.Extensions
                 }
             };
 
+#if !UZSURFACEMAPPER // TODO
             return action.RunAsync(result);
+#else
+            return null;
+#endif
         }
 
         /// <summary>
