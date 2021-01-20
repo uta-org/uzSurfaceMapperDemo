@@ -10,7 +10,7 @@
 	path = Assets/Libraries/TerrainSystem
 	url = https://github.com/uta-org/TerrainSystem.git
 [submodule "Assets/Plugins/uzSurfaceMapperDemo"]
-	path = Assets/Plugins/uzSurfaceMapperDemo
+	path = Assets/DemoPlugins/uzSurfaceMapperDemo
 	url = https://github.com/uta-org/uzSurfaceMapperDemo.git
 	branch = unity_plugins
 [submodule "Assets/APIScripts"]
