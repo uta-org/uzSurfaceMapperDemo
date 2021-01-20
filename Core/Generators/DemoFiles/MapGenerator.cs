@@ -180,10 +180,13 @@ namespace uzSurfaceMapper.Core.Generators
         [InvokeAtAwake]
         public virtual void InvokeAtAwake()
         {
+            // TODO
             if (!IS_DEMO)
 #pragma warning disable 162
                 return;
 #pragma warning restore 162
+
+            //Debug.Log("Awaked");
 
             if (AlreadyExecuted)
                 return;
@@ -191,6 +194,8 @@ namespace uzSurfaceMapper.Core.Generators
             AlreadyExecuted = true;
 
             TextureBenchmarkData.StartBenchmark(TextureBenchmark.ResourcesLoad);
+
+            //Debug.Log(debugging ? "Is debugging" : "Not debugging");
 
             // We will need to load it because of minimap
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse

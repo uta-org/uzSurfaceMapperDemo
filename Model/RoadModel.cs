@@ -28,8 +28,16 @@ namespace uzSurfaceMapper.Model
         {
             get
             {
-                lock (SimplifiedRoadNodes)
-                    return SimplifiedRoadNodes != null;
+                try
+                {
+                    lock (SimplifiedRoadNodes)
+                        return SimplifiedRoadNodes != null;
+                }
+                catch
+                {
+                    // If SimplifiedRoadNodes is null this will be triggered
+                    return false;
+                }
             }
         }
 

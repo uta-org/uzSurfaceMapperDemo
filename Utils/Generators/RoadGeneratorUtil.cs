@@ -140,7 +140,7 @@ namespace uzSurfaceMapper.Utils.Generators
             }
         }
 
-        private static Point GetPoint(this int index)
+        internal static Point GetPoint(this int index)
         {
             return index.GetNode().Position;
         }
