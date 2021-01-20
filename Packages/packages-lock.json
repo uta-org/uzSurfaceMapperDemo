@@ -8,7 +8,7 @@
         "com.unity.ugui": "1.0.0",
         "com.unity.mathematics": "1.1.0"
       },
-      "hash": "87735eb1b5cc67b992d5448102eaaafe196337ee"
+      "hash": "3d6ab788003617b731d0a9a6db9333dcc751816e"
     },
     "com.unity.collab-proxy": {
       "version": "1.2.16",
@@ -34,7 +34,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.vscode": {
-      "version": "1.2.1",
+      "version": "1.2.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -48,7 +48,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
-      "version": "1.1.16",
+      "version": "1.1.18",
       "depth": 0,
       "source": "registry",
       "dependencies": {
