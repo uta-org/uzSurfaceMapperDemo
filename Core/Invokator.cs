@@ -11,6 +11,11 @@ namespace uzSurfaceMapper.Core
     {
         private static List<MethodModel> UpdateMethods { get; } = new List<MethodModel>();
 
+        private Dictionary<string, Exception> UpdateException { get; set; } = new Dictionary<string, Exception>();
+        private bool HasExceptions { get; set; }
+
+        public bool m_stopAtExceptions = true;
+
         private void Awake()
         {
             var awakeMethods = GetAttributes<InvokeAtAwakeAttribute>();
@@ -22,9 +27,21 @@ namespace uzSurfaceMapper.Core
 
         private void Update()
         {
+            if (m_stopAtExceptions && HasExceptions) return;
+
             foreach (var updateMethod in UpdateMethods)
             {
-                updateMethod.Method.Invoke(updateMethod.Instance, null);
+                if (UpdateException.ContainsKey(updateMethod.Method.Name)) continue;
+                try
+                {
+                    updateMethod.Method.Invoke(updateMethod.Instance, null);
+                }
+                catch (Exception ex)
+                {
+                    HasExceptions = true;
+                    Debug.LogException(ex);
+                    UpdateException.Add(updateMethod.Method.Name, ex);
+                }
             }
         }
 
