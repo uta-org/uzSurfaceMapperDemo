@@ -18,5 +18,6 @@
 	url = https://github.com/uta-org/uzSurfaceMapperDemo.git
 	branch = api
 [submodule "Assets/Libraries/UniGif"]
+	path = Assets/Libraries/UniGif
 	url = https://github.com/uta-org/UniGif.git
 	branch = unity-1.1.1
