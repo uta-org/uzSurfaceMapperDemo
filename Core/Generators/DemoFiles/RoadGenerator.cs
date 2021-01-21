@@ -42,10 +42,11 @@ namespace uzSurfaceMapper.Core.Generators
         {
             base.InvokeAtAwake();
 
-            if (!IS_DEMO)
-#pragma warning disable 162
-                return;
-#pragma warning restore 162
+            // TODO
+            //            if (!IS_DEMO)
+            //#pragma warning disable 162
+            //                return;
+            //#pragma warning restore 162
 
             string path;
 #if !UNITY_WEBGL
@@ -75,7 +76,7 @@ namespace uzSurfaceMapper.Core.Generators
                 StartCoroutine(F.AsyncReadFileWithWWW<string>(RoadJSONPath, result =>
                 {
                     Model = result.Deserialize<RoadModel>();
-                                    RoadModel = Model;
+                    RoadModel = Model;
 
                     Debug.Log($"Deserialized roads with {RoadModel.SimplifiedRoadNodes.Count} nodes!");
 

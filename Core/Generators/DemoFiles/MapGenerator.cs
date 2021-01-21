@@ -193,6 +193,8 @@ namespace uzSurfaceMapper.Core.Generators
 
             AlreadyExecuted = true;
 
+            Debug.Log("loading and creating map of colors...");
+
             TextureBenchmarkData.StartBenchmark(TextureBenchmark.ResourcesLoad);
 
             //Debug.Log(debugging ? "Is debugging" : "Not debugging");

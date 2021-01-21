@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using UnityEngine;
 using uzSurfaceMapper.Model.Enums;
@@ -17,6 +18,9 @@ namespace uzSurfaceMapper.Model
     [Serializable]
     public class RoadModel : IProgress<float>
     {
+        public bool UseBuilderForTesting { get; internal set; }
+        private StringBuilder Builder { get; set; }
+
         [JsonIgnore] public static UColor[] Colors { get; set; }
         public HashSet<RoadNode> RoadNodes { get; } = new HashSet<RoadNode>();
         public Dictionary<int, RoadNode> SimplifiedRoadNodes { get; set; }
@@ -165,9 +169,18 @@ namespace uzSurfaceMapper.Model
                         //lock (node.Connections)
                         //    lock (node.ParentNodes)
                         {
+                            if (UseBuilderForTesting)
+                            {
+                                Builder = new StringBuilder($"Creating line from {p1} to {p2}");
+                                Builder.AppendLine();
+                            }
+
                             var isValid = Colors.DrawLine(p1, p2, (x, y) =>
                             {
                                 var index = F.P(x, y, mapWidth, mapHeight);
+
+                                if (UseBuilderForTesting)
+                                    Builder.AppendLine($"{index} ({x}, {y}) = {Colors[index]}");
 
                                 if (SimplifiedRoadNodes.ContainsKey(index) && node.Connections?.Contains(index) == true)
                                 {
@@ -185,9 +198,12 @@ namespace uzSurfaceMapper.Model
                                 return Colors[index].AsComponentColor() == GroundType.Asphalt.GetColor();
                             });
 
+                            if (UseBuilderForTesting)
+                                Debug.Log(Builder.ToString());
+
                             if (isValid)
                             {
-                                if (node.Connections == null) node.Connections = new List<int>();
+                                if (node.Connections == null) node.Connections = new HashSet<int>();
 
                                 var val = n.Dictionary.Value;
                                 var ind = val.GetKey();

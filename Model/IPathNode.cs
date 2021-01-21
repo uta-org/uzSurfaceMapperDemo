@@ -4,7 +4,7 @@ namespace uzSurfaceMapper.Model
 {
     public interface IPathNode
     {
-        List<int> Connections { get; }
+        HashSet<int> Connections { get; }
         Point Position { get; }
         bool Invalid { get; }
     }

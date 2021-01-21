@@ -20,7 +20,8 @@ namespace uzSurfaceMapper.Utils.Generators
 
         static RoadGeneratorUtil()
         {
-            System = GameObject.Find("RoadGenerator").GetComponent<RoadSystem>();
+            System = GameObject.Find("RoadGenerator")?.GetComponent<RoadSystem>();
+            if (System == null) return;
             System.isAllowingRoadUpdates = false;
             System.isMultithreaded = false;
         }

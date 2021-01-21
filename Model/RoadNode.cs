@@ -9,7 +9,7 @@ namespace uzSurfaceMapper.Model
     public class RoadNode : IPathNode
     {
         //[JsonConverter(typeof(RoadNodeConverter))]
-        public List<int> Connections { get; set; } // TODO: IPathNode<T> + RoadNode : IPathNode<RoadNode> + Connections (ConcurrentBag<RoadNode>), but can't be serialized due to StackOverflow and OutOfMemory exceptions
+        public HashSet<int> Connections { get; set; } // TODO: IPathNode<T> + RoadNode : IPathNode<RoadNode> + Connections (ConcurrentBag<RoadNode>), but can't be serialized due to StackOverflow and OutOfMemory exceptions
 
         public Point Position { get; set; }
         public bool Invalid { get; set; }
@@ -50,6 +50,11 @@ namespace uzSurfaceMapper.Model
         public int GetKey()
         {
             return F.P(Position.x, Position.y, mapWidth, mapHeight);
+        }
+
+        public override string ToString()
+        {
+            return $"{Position} --> {GetKey()}\nThickness: {Thickness}\nParent Nodes: {ParentNodes?.Count}\nConnections: {Connections?.Count}\nInvalid?: {Invalid}";
         }
     }
 }
