@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -30,6 +31,7 @@ using UnityEngine.Networking;
 using static uzSurfaceMapper.Core.Generators.MapGenerator;
 using UEColor = UnityEngine.Color;
 using Color = uzSurfaceMapper.Model.Color;
+using Component = UnityEngine.Component;
 using Debug = UnityEngine.Debug;
 using Directory = MetadataExtractor.Directory;
 using Object = UnityEngine.Object;
@@ -45,7 +47,7 @@ using File = uzSurfaceMapperDemo.Utils.File;
 
 namespace uzSurfaceMapper.Extensions
 {
-    public static class F
+    public static partial class F
     {
         ///// <summary>
         /////     Gets the separator.
@@ -1329,6 +1331,7 @@ namespace uzSurfaceMapper.Extensions
         }
 
 #if !UNITY_WEBGL
+
         /// <summary>
         ///     Percentiles the specified percentile.
         /// </summary>
@@ -1360,6 +1363,7 @@ namespace uzSurfaceMapper.Extensions
             foreach (var t in ts)
                 yield return t;
         }
+
 #endif
 
         // TODO: This not needed anymore. This implementation was used to created a building on the old 2018 way.
@@ -3211,6 +3215,7 @@ namespace uzSurfaceMapper.Extensions
         }
 
 #if !UNITY_WEBGL
+
         /// <summary>
         /// Sizes the of.
         /// </summary>
@@ -3257,6 +3262,7 @@ namespace uzSurfaceMapper.Extensions
 
             return sizeOfInt * xRes * zRes * 6 + sizeOfVector3 * (xRes + 1) * (zRes + 1);
         }
+
 #endif
 
         /// <summary>
@@ -3938,7 +3944,7 @@ namespace uzSurfaceMapper.Extensions
         public static void ReadDataFromWebAsync(this string url, Action<byte[]> result)
         {
             if (result == null) throw new ArgumentNullException(nameof(result));
-            Func<byte[]> readAsync = () => new System.Net.WebClient().DownloadData(url);
+            Func<BackgroundWorker, byte[]> readAsync = worker => new System.Net.WebClient().DownloadData(url);
             readAsync.RunAsync(result);
         }
 
