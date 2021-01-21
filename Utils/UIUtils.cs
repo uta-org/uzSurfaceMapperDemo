@@ -406,6 +406,28 @@ namespace UnityEngine.UI
 
         #endregion "Missing GUIStyles copy"
 
+        public static void DrawBarWithLabel(Rect rect, string status, float fillPerc, float borderWidth = 1)
+        {
+            DrawBarWithLabel(rect, status, fillPerc, Color.white, Color.gray, borderWidth);
+        }
+
+        public static void DrawBarWithLabel(Rect rect, float fillPerc, float borderWidth = 1)
+        {
+            DrawBarWithLabel(rect, fillPerc, Color.white, Color.gray, borderWidth);
+        }
+
+        public static void DrawBarWithLabel(Rect rect, float fillPerc, Color fillColor, Color backgroundColor, float borderWidth = 1)
+        {
+            DrawBarWithLabel(rect, null, fillPerc, fillColor, backgroundColor, borderWidth);
+        }
+
+        public static void DrawBarWithLabel(Rect rect, string status, float fillPerc, Color fillColor, Color backgroundColor, float borderWidth = 1, bool showSteps = true)
+        {
+            DrawBar(rect, fillPerc, fillColor, backgroundColor, borderWidth);
+            GUI.Label(rect, string.IsNullOrEmpty(status) ? $"{fillPerc * 100:F2} %" : $"{status}: {fillPerc * 100:F2} %",
+                new GUIStyle("label") { alignment = TextAnchor.MiddleCenter, normal = new GUIStyleState { textColor = Color.black } });
+        }
+
         /// <summary>
         ///     Draws the bar.
         /// </summary>
