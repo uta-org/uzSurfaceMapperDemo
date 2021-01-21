@@ -181,10 +181,10 @@ namespace uzSurfaceMapper.Core.Generators
         public virtual void InvokeAtAwake()
         {
             // TODO
-            if (!IS_DEMO)
-#pragma warning disable 162
-                return;
-#pragma warning restore 162
+            //            if (!IS_DEMO)
+            //#pragma warning disable 162
+            //                return;
+            //#pragma warning restore 162
 
             //Debug.Log("Awaked");
 

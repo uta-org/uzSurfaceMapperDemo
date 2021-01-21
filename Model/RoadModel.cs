@@ -73,7 +73,7 @@ namespace uzSurfaceMapper.Model
                 { Index = node.Position.GetKey(), Node = node })
                 .SafeToDictionary(x => x.Index, x => x.Node);
 
-            lock (SimplifiedRoadNodes)
+            //lock (SimplifiedRoadNodes) // lock doesn't make sense here
             {
                 SimplifiedRoadNodes = new Dictionary<int, RoadNode>(nodes
                     .Select(p => new { Index = p.GetKey(), Value = dictionary[p.GetKey()] })
@@ -161,48 +161,49 @@ namespace uzSurfaceMapper.Model
                             continue; // skip if same point
                         }
 
-                        lock (node.Connections)
-                            lock (node.ParentNodes)
+                        // TODO ?
+                        //lock (node.Connections)
+                        //    lock (node.ParentNodes)
+                        {
+                            var isValid = Colors.DrawLine(p1, p2, (x, y) =>
                             {
-                                var isValid = Colors.DrawLine(p1, p2, (x, y) =>
+                                var index = F.P(x, y, mapWidth, mapHeight);
+
+                                if (SimplifiedRoadNodes.ContainsKey(index) && node.Connections?.Contains(index) == true)
                                 {
-                                    var index = F.P(x, y, mapWidth, mapHeight);
-
-                                    if (SimplifiedRoadNodes.ContainsKey(index) && node.Connections?.Contains(index) == true)
-                                    {
-                                        ++OnSameLine;
-                                        return false;
-                                    }
-
-                                    if (index < 0 || index >= length)
-                                    {
-                                        if (PrintOutOfIndexErrors) Debug.LogError($"Out of index in ({x}, {y}) -> {index}");
-                                        ++OutOfIndexErrors;
-                                        return TreatOutOfIndexErrorsAsValid;
-                                    }
-
-                                    return Colors[index].AsComponentColor() == GroundType.Asphalt.GetColor();
-                                });
-
-                                if (isValid)
-                                {
-                                    if (node.Connections == null) node.Connections = new List<int>();
-
-                                    var val = n.Dictionary.Value;
-                                    var ind = val.GetKey();
-
-                                    node.Connections.Add(ind);
-
-                                    if (SimplifiedRoadNodes[ind].ParentNodes == null)
-                                        SimplifiedRoadNodes[ind].ParentNodes = new List<int>();
-                                    SimplifiedRoadNodes[ind].ParentNodes
-                                        .Add(node.GetKey()); // Add parents back to this node
-
-                                    ValidConnections++;
+                                    ++OnSameLine;
+                                    return false;
                                 }
-                                else
-                                    NotValidConnections++;
+
+                                if (index < 0 || index >= length)
+                                {
+                                    if (PrintOutOfIndexErrors) Debug.LogError($"Out of index in ({x}, {y}) -> {index}");
+                                    ++OutOfIndexErrors;
+                                    return TreatOutOfIndexErrorsAsValid;
+                                }
+
+                                return Colors[index].AsComponentColor() == GroundType.Asphalt.GetColor();
+                            });
+
+                            if (isValid)
+                            {
+                                if (node.Connections == null) node.Connections = new List<int>();
+
+                                var val = n.Dictionary.Value;
+                                var ind = val.GetKey();
+
+                                node.Connections.Add(ind);
+
+                                if (SimplifiedRoadNodes[ind].ParentNodes == null)
+                                    SimplifiedRoadNodes[ind].ParentNodes = new List<int>();
+                                SimplifiedRoadNodes[ind].ParentNodes
+                                    .Add(node.GetKey()); // Add parents back to this node
+
+                                ValidConnections++;
                             }
+                            else
+                                NotValidConnections++;
+                        }
                     }
 
                     //yield return returnNode;
