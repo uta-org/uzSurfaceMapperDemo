@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 using RoadArchitect;
 using RoadArchitect.Roads;
 using UnityEngine;
@@ -15,15 +16,24 @@ namespace uzSurfaceMapper.Utils.Generators
 {
     public static class RoadGeneratorUtil
     {
+        [CanBeNull]
         private static RoadSystem System { get; }
+
         public static Dictionary<Chunk, List<Road>> Roads { get; } = new Dictionary<Chunk, List<Road>>();
 
         static RoadGeneratorUtil()
         {
-            System = GameObject.Find("RoadGenerator")?.GetComponent<RoadSystem>();
-            if (System == null) return;
-            System.isAllowingRoadUpdates = false;
-            System.isMultithreaded = false;
+            try
+            {
+                System = GameObject.Find("RoadGenerator")?.GetComponent<RoadSystem>();
+                if (System == null) return;
+                System.isAllowingRoadUpdates = false;
+                System.isMultithreaded = false;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
         }
 
         //public class RoadComposer : List<Vector3>
@@ -48,6 +58,7 @@ namespace uzSurfaceMapper.Utils.Generators
                 //var backIndex = ((Point)CityGenerator.SConv.GetRealPositionOnMap(first)).GetKey();
 
                 var road = CreateIndependantRoad(list);
+                if (road == null) continue;
                 builder?.AppendLine($"\t... finished road ({road.name}) with {list.Count} nodes.");
                 yield return road;
             }
@@ -154,6 +165,12 @@ namespace uzSurfaceMapper.Utils.Generators
 
         public static Road CreateIndependantRoad(this List<Vector3> points)
         {
+            if (System == null)
+            {
+                Debug.LogWarning("Null system.");
+                return null;
+            }
+
             // TODO: ref?
             var road = RoadAutomation.CreateRoadProgrammatically(System, ref points);
             System.isAllowingRoadUpdates = true;

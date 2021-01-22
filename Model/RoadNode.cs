@@ -54,7 +54,7 @@ namespace uzSurfaceMapper.Model
 
         public override string ToString()
         {
-            return $"{Position} --> {GetKey()}\nThickness: {Thickness}\nParent Nodes: {ParentNodes?.Count}\nConnections: {Connections?.Count}\nInvalid?: {Invalid}";
+            return $"\n{{\n\t{Position} --> {GetKey()}\n\tThickness: {Thickness}\n\tParent Nodes: {ParentNodes?.Count}\n\tConnections: {Connections?.Count}\n\tInvalid?: {Invalid}}}\n";
         }
     }
 }

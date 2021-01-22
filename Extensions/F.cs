@@ -11,6 +11,7 @@ using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.RegularExpressions;
 using APIScripts.Utils;
 using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Model;
@@ -1047,7 +1048,7 @@ namespace uzSurfaceMapper.Extensions
 
             while (true)
             {
-                if (!predicate(x0, x1))
+                if (!predicate(x0, y0))
                     return false;
 
                 if (x0 == x1 && y0 == y1)
@@ -3946,6 +3947,17 @@ namespace uzSurfaceMapper.Extensions
             if (result == null) throw new ArgumentNullException(nameof(result));
             Func<BackgroundWorker, byte[]> readAsync = worker => new System.Net.WebClient().DownloadData(url);
             readAsync.RunAsync(result);
+        }
+
+        public static int GetLineCount(this StringBuilder builder)
+        {
+            if (builder == null) return -1;
+            return Regex.Matches(builder.ToString(), Environment.NewLine)?.Count ?? -1;
+        }
+
+        public static string ToDetailedString<K, V>(this KeyValuePair<K, V> keyValuePair)
+        {
+            return $"\n{{\n\tKey: '{keyValuePair.Key}'\n\tValue: '{keyValuePair.Value}'}}\n";
         }
 
 #if UNITY_EDITOR

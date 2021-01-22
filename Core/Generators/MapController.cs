@@ -51,6 +51,8 @@ namespace uzSurfaceMapper.Core.Generators
         /// </summary>
         public bool showMinimap = true;
 
+        public bool disableGUI = false;
+
         /// <summary>
         ///     The sea pixel
         /// </summary>
@@ -130,7 +132,7 @@ namespace uzSurfaceMapper.Core.Generators
         private void OnGUI()
         {
             // showMinimap
-            if (!CityGenerator.DoesCityFileExists || MapGenerator.MapTexture == null)
+            if ((!CityGenerator.DoesCityFileExists || MapGenerator.MapTexture == null) || disableGUI)
                 return;
 
             // This needs to be here because of screen resolution updates

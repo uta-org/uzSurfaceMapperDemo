@@ -345,12 +345,13 @@ namespace uzSurfaceMapper.Core.Generators
             //City.singlePlaneSize = TGen.OriginalPlaneScale; //SConvert.Instance.GetScaleDiv(terraGen.singlePlaneSize);
 
             // We activate the terrain generation script
-            _terrainGenerator?.SetActive(true);
+            if (_terrainGenerator != null)
+                _terrainGenerator.SetActive(true);
 
             // Stops the benchmark
             CityBenchmarkData.StopBenchmark(CityBenchmark.GenerateCity);
 
-            BenchmarkReports.Instance.GetActualReport(BenchmarkReportOrder.All);
+            BenchmarkReports.Instance?.GetActualReport(BenchmarkReportOrder.All);
 
             yield break;
         }

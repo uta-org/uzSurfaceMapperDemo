@@ -127,6 +127,8 @@ namespace uzSurfaceMapper.Core.Generators
 
         public static City CityModel { get; internal set; }
 
+        public static bool DoBenchmarks { get; set; } = true;
+
         /// <summary>
         ///     The map colors
         /// </summary>
@@ -193,9 +195,8 @@ namespace uzSurfaceMapper.Core.Generators
 
             AlreadyExecuted = true;
 
-            Debug.Log("loading and creating map of colors...");
-
-            TextureBenchmarkData.StartBenchmark(TextureBenchmark.ResourcesLoad);
+            if (DoBenchmarks)
+                TextureBenchmarkData.StartBenchmark(TextureBenchmark.ResourcesLoad);
 
             //Debug.Log(debugging ? "Is debugging" : "Not debugging");
 
@@ -204,65 +205,75 @@ namespace uzSurfaceMapper.Core.Generators
             if (!debugging && (MapController.Instance.showMinimap || forceTerrainGen))
             {
                 // TODO: Implement async
-                MapTexture = Resources.Load<Texture2D>(resourcePathGetter);
-
-                mapWidth = MapTexture.width;
-                mapHeight = MapTexture.height;
-
-                // TODO: Implement async read
-                mapColors = MapTexture.GetPixels();
-
-                TextureWorkerBase.SetReference(mapColors);
-
-                //AsyncHelper.RunAsync(
-                //    () =>
-                //    {
-                //        // TODO: Implement here all calls
-                //        VoronoiTextureWorker.PrepareVoronoiCells();
-                //    }); // ,
-                //() => IsReady = true);
-
-                // @TODO: Implement offset polygon view here
-
-                //if (testGridPerfomance)
-                //{
-                //    for (int i = 1; i <= 5; i++)
-                //    {
-                //        var _ = mapColors.GridCheck(new Point(mapWidth / 2, mapHeight / 2), mapWidth, mapHeight, i).ToArray();
-                //    }
-                //}
-
-                // TODO: This is working, but not needed on Demo. Remove and refactor.
-                //if (testVoronoi)
-                //{
-                //    VoronoiWorker = AsyncHelper.RunAsync(
-                //        () => DoVoronoi(mapColors, mapWidth, mapHeight, false, false, false), result =>
-                //        {
-                //            var debugStr = result.Item1;
-
-                //            if (result.Item2 == null)
-                //            {
-                //                Debug.LogError($"{nameof(VoronoiWorker)} cancelled!");
-                //                Debug.Log(debugStr);
-                //                return;
-                //            }
-
-                //            Debug.Log(debugStr);
-
-                //            var watch = Stopwatch.StartNew();
-                //            var map = result.Item2.CastBack().ToArray();
-                //            var filePath = Path.Combine(Environment.CurrentDirectory, "voronoi-test.png");
-
-                //            F.SaveAndClear(filePath, map, mapWidth, mapHeight);
-                //            watch.Stop();
-
-                //            Debug.Log($"Done in {watch.ElapsedMilliseconds} ms!");
-                //        });
-                //    VoronoiWorker.WorkerSupportsCancellation = true;
-                //}
+                LoadColors();
             }
 
-            TextureBenchmarkData.StopBenchmark(TextureBenchmark.ResourcesLoad);
+            if (DoBenchmarks)
+                TextureBenchmarkData.StopBenchmark(TextureBenchmark.ResourcesLoad);
+        }
+
+        public static void LoadColors()
+        {
+            Debug.Log("Loading and creating map of colors...");
+
+            MapTexture = Instantiate(Resources.Load<Texture2D>(resourcePathGetter));
+
+            mapWidth = MapTexture.width;
+            mapHeight = MapTexture.height;
+
+            // TODO: Implement async read
+            mapColors = MapTexture.GetPixels();
+
+            TextureWorkerBase.SetReference(mapColors);
+
+            Debug.Log("Loaded colors!");
+
+            //AsyncHelper.RunAsync(
+            //    () =>
+            //    {
+            //        // TODO: Implement here all calls
+            //        VoronoiTextureWorker.PrepareVoronoiCells();
+            //    }); // ,
+            //() => IsReady = true);
+
+            // @TODO: Implement offset polygon view here
+
+            //if (testGridPerfomance)
+            //{
+            //    for (int i = 1; i <= 5; i++)
+            //    {
+            //        var _ = mapColors.GridCheck(new Point(mapWidth / 2, mapHeight / 2), mapWidth, mapHeight, i).ToArray();
+            //    }
+            //}
+
+            // TODO: This is working, but not needed on Demo. Remove and refactor.
+            //if (testVoronoi)
+            //{
+            //    VoronoiWorker = AsyncHelper.RunAsync(
+            //        () => DoVoronoi(mapColors, mapWidth, mapHeight, false, false, false), result =>
+            //        {
+            //            var debugStr = result.Item1;
+
+            //            if (result.Item2 == null)
+            //            {
+            //                Debug.LogError($"{nameof(VoronoiWorker)} cancelled!");
+            //                Debug.Log(debugStr);
+            //                return;
+            //            }
+
+            //            Debug.Log(debugStr);
+
+            //            var watch = Stopwatch.StartNew();
+            //            var map = result.Item2.CastBack().ToArray();
+            //            var filePath = Path.Combine(Environment.CurrentDirectory, "voronoi-test.png");
+
+            //            F.SaveAndClear(filePath, map, mapWidth, mapHeight);
+            //            watch.Stop();
+
+            //            Debug.Log($"Done in {watch.ElapsedMilliseconds} ms!");
+            //        });
+            //    VoronoiWorker.WorkerSupportsCancellation = true;
+            //}
         }
 
         [InvokeAtUpdate]

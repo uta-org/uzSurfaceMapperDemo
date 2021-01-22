@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using APIScripts.Utils;
+﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.Extensions;
-using UnityEngine.UI;
 using uzSurfaceMapper.Core.Attrs;
 using uzSurfaceMapper.Core.Workers;
 using uzSurfaceMapper.Core.Workers.Interfaces;
@@ -11,7 +7,8 @@ using uzSurfaceMapper.Extensions;
 using uzSurfaceMapper.Model;
 using Color = uzSurfaceMapper.Model.Color;
 using F = uzSurfaceMapper.Extensions.F;
-using UColor = UnityEngine.Color;
+
+//using UColor = UnityEngine.Color;
 
 #if UNITY_WEBGL
 
@@ -29,7 +26,7 @@ namespace uzSurfaceMapper.Core.Generators
     {
         public static RoadModel RoadModel { get; private set; }
 
-        public RoadModel Model { get; private set; }
+        //public RoadModel Model { get; private set; }
 
         public Color[] Source { get; set; }
         public Color32[] Target { get; set; }
@@ -67,16 +64,16 @@ namespace uzSurfaceMapper.Core.Generators
 
             if (!exists)
             {
-                Model = new RoadModel();
-                RoadModel = Model;
+                RoadModel = new RoadModel();
+                //RoadModel = Model;
             }
             else
             {
 #if !UNITY_WEBGL
                 StartCoroutine(F.AsyncReadFileWithWWW<string>(RoadJSONPath, result =>
                 {
-                    Model = result.Deserialize<RoadModel>();
-                    RoadModel = Model;
+                    RoadModel = result.Deserialize<RoadModel>();
+                    //RoadModel = Model;
 
                     Debug.Log($"Deserialized roads with {RoadModel.SimplifiedRoadNodes.Count} nodes!");
 
