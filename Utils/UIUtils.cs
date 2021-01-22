@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.Global.IMGUI;
 
 namespace UnityEngine.UI
 {
@@ -407,10 +409,17 @@ namespace UnityEngine.UI
 
         #endregion "Missing GUIStyles copy"
 
+        public static string ExecuteCoroutine(string activeLabel, string disabledLabel,
+            ref Coroutine coroutine, MonoBehaviour mono, IEnumerator enumerator)
+        {
+            ButtonAsCoroutine(default, activeLabel, disabledLabel, ref coroutine, mono, enumerator);
+            return coroutine == null ? disabledLabel : activeLabel;
+        }
+
         public static bool ButtonAsCoroutine(Rect rect, string activeLabel, string disabledLabel,
             ref Coroutine coroutine, MonoBehaviour mono, IEnumerator enumerator)
         {
-            if (GUI.Button(rect, coroutine != null ? disabledLabel : activeLabel))
+            if (rect == default || GUI.Button(rect, coroutine != null ? disabledLabel : activeLabel))
             {
                 if (coroutine == null)
                 {
@@ -1047,10 +1056,136 @@ namespace UnityEngine.UI
                 GUI.DrawTexture(new Rect(0, shadowRect.yMin, shadowRect.xMin, size.y), backgroundTexture);
 
             if (shadowRect.xMax < size.x)
-                GUI.DrawTexture(new Rect(shadowRect.xMin, shadowRect.yMax, size.x - shadowRect.xMin, size.y - shadowRect.yMax), backgroundTexture);
+                GUI.DrawTexture(
+                    new Rect(shadowRect.xMin, shadowRect.yMax, size.x - shadowRect.xMin, size.y - shadowRect.yMax),
+                    backgroundTexture);
 
             if (shadowRect.yMax < size.y)
-                GUI.DrawTexture(new Rect(shadowRect.xMax, shadowRect.yMin, size.x - shadowRect.xMax, shadowRect.height), backgroundTexture);
+                GUI.DrawTexture(new Rect(shadowRect.xMax, shadowRect.yMin, size.x - shadowRect.xMax, shadowRect.height),
+                    backgroundTexture);
         }
+
+        #region "Select List"
+
+        public delegate void DoubleClickCallback(int index);
+
+        public static int SelectionList(int selected, GUIContent[] list)
+        {
+            return SelectionList(selected, list, "List Item", null);
+        }
+
+        public static int SelectionList(int selected, GUIContent[] list, GUIStyle elementStyle)
+        {
+            return SelectionList(selected, list, elementStyle, null);
+        }
+
+        public static int SelectionList(int selected, GUIContent[] list, DoubleClickCallback callback)
+        {
+            return SelectionList(selected, list, "List Item", callback);
+        }
+
+        public static int SelectionList(int selected, GUIContent[] list, GUIStyle elementStyle, DoubleClickCallback callback)
+        {
+            for (int i = 0; i < list.Length; ++i)
+            {
+                Rect elementRect = GUILayoutUtility.GetRect(list[i], elementStyle);
+                bool hover = elementRect.Contains(Event.current.mousePosition);
+                if (hover && Event.current.type == EventType.MouseDown)
+                {
+                    selected = i;
+                    Event.current.Use();
+                }
+                else if (hover && callback != null && Event.current.type == EventType.MouseUp && Event.current.clickCount == 2)
+                {
+                    callback(i);
+                    Event.current.Use();
+                }
+                else if (Event.current.type == EventType.Repaint)
+                {
+                    elementStyle.Draw(elementRect, list[i], hover, false, i == selected, false);
+                }
+            }
+            return selected;
+        }
+
+        public static int SelectionList(int selected, string[] list)
+        {
+            return SelectionList(selected, list, "List Item", null);
+        }
+
+        public static int SelectionList(int selected, string[] list, GUIStyle elementStyle)
+        {
+            return SelectionList(selected, list, elementStyle, null);
+        }
+
+        public static int SelectionList(int selected, string[] list, DoubleClickCallback callback)
+        {
+            return SelectionList(selected, list, "List Item", callback);
+        }
+
+        public static int SelectionList(int selected, string[] list, GUIStyle elementStyle, DoubleClickCallback callback)
+        {
+            for (int i = 0; i < list.Length; ++i)
+            {
+                Rect elementRect = GUILayoutUtility.GetRect(new GUIContent(list[i]), elementStyle);
+                bool hover = elementRect.Contains(Event.current.mousePosition);
+                if (hover && Event.current.type == EventType.MouseDown)
+                {
+                    selected = i;
+                    Event.current.Use();
+                }
+                else if (hover && callback != null && Event.current.type == EventType.MouseUp && Event.current.clickCount == 2)
+                {
+                    callback(i);
+                    Event.current.Use();
+                }
+                else if (Event.current.type == EventType.Repaint)
+                {
+                    elementStyle.Draw(elementRect, list[i], hover, false, i == selected, false);
+                }
+            }
+            return selected;
+        }
+
+        public static int SelectionList(int selected, List<GUIContent> list)
+        {
+            return SelectionList(selected, list, "button", null);
+        }
+
+        public static int SelectionList(int selected, List<GUIContent> list, GUIStyle elementStyle)
+        {
+            return SelectionList(selected, list, elementStyle, null);
+        }
+
+        public static int SelectionList(int selected, List<GUIContent> list, DoubleClickCallback callback)
+        {
+            return SelectionList(selected, list, "button", callback);
+        }
+
+        public static int SelectionList(int selected, List<GUIContent> list, GUIStyle elementStyle, DoubleClickCallback callback)
+        {
+            for (int i = 0; i < list.Count; ++i)
+            {
+                Rect elementRect = GUILayoutUtility.GetRect(list[i], elementStyle);
+                bool hover = elementRect.Contains(Event.current.mousePosition);
+                if (hover && Event.current.type == EventType.MouseDown)
+                {
+                    selected = i;
+                    Event.current.Use();
+                }
+                else if (hover && callback != null && Event.current.type == EventType.MouseUp && Event.current.clickCount == 2)
+                {
+                    callback(i);
+                    Event.current.Use();
+                }
+                else if (Event.current.type == EventType.Repaint)
+                {
+                    elementStyle.Draw(elementRect, list[i], hover, false, i == selected, false);
+                }
+            }
+            return selected;
+        }
+
+        #endregion "Select List"
     }
 }
