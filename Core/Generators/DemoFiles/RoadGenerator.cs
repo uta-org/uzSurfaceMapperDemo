@@ -24,9 +24,10 @@ namespace uzSurfaceMapper.Core.Generators
 {
     public sealed partial class RoadGenerator : MapGenerator, IWorkerShareable
     {
-        public static RoadModel RoadModel { get; private set; }
+        public static RoadModel RoadModel => My.Model;
+        private static RoadGenerator My;
 
-        //public RoadModel Model { get; private set; }
+        public RoadModel Model { get; private set; }
 
         public Color[] Source { get; set; }
         public Color32[] Target { get; set; }
@@ -38,12 +39,13 @@ namespace uzSurfaceMapper.Core.Generators
         public override void InvokeAtAwake()
         {
             base.InvokeAtAwake();
+            if (My == null) My = this;
 
             // TODO
-            //            if (!IS_DEMO)
-            //#pragma warning disable 162
-            //                return;
-            //#pragma warning restore 162
+            if (!IS_DEMO)
+#pragma warning disable 162
+                return;
+#pragma warning restore 162
 
             string path;
 #if !UNITY_WEBGL
@@ -64,7 +66,7 @@ namespace uzSurfaceMapper.Core.Generators
 
             if (!exists)
             {
-                RoadModel = new RoadModel();
+                Model = new RoadModel();
                 //RoadModel = Model;
             }
             else
@@ -72,10 +74,10 @@ namespace uzSurfaceMapper.Core.Generators
 #if !UNITY_WEBGL
                 StartCoroutine(F.AsyncReadFileWithWWW<string>(RoadJSONPath, result =>
                 {
-                    RoadModel = result.Deserialize<RoadModel>();
+                    Model = result.Deserialize<RoadModel>();
                     //RoadModel = Model;
 
-                    Debug.Log($"Deserialized roads with {RoadModel.SimplifiedRoadNodes.Count} nodes!");
+                    Debug.Log($"Deserialized roads with {Model.SimplifiedRoadNodes.Count} nodes!");
 
                     isRoadReady = true;
                 }));
@@ -147,7 +149,8 @@ namespace uzSurfaceMapper.Core.Generators
             Debug.Log($"Serializing '{RoadBINPath}'!");
 
             // ReSharper disable once InvokeAsExtensionMethod
-            File.WriteAllBytes(RoadBINPath, F.Serialize(RoadModel, null));
+            lock (RoadModel)
+                File.WriteAllBytes(RoadBINPath, F.Serialize(RoadModel, null));
         }
     }
 }
