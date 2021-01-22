@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using RoadArchitect;
 using RoadArchitect.Roads;
 using UnityEngine;
 using uzSurfaceMapper.Core.Generators;
-using uzSurfaceMapper.Extensions;
+using uzSurfaceMapper.Extensions.Demo;
 using uzSurfaceMapper.Model;
+
+//using uzLib.Lite.ExternalCode.Extensions;
 
 // ReSharper disable ConvertToLambdaExpression
 

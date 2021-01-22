@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using uzSurfaceMapper.Extensions;
+using uzSurfaceMapper.Extensions.Demo;
 using static uzSurfaceMapper.Core.Generators.MapGenerator;
 
 namespace uzSurfaceMapper.Model

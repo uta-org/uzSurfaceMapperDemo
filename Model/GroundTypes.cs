@@ -6,6 +6,7 @@ using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Model.Enums;
 using uzSurfaceMapper.Extensions;
 using UnityEngine;
+using uzSurfaceMapper.Extensions.Demo;
 using Color = uzSurfaceMapper.Model.Color;
 
 //using uzSurfaceMapper.Core.Components;

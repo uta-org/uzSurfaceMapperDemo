@@ -4,7 +4,7 @@ using ProceduralToolkit.Buildings;
 using UnityEngine;
 using uzSurfaceMapper.Model;
 using uzSurfaceMapper.Core.Generators;
-using uzSurfaceMapper.Extensions;
+using uzSurfaceMapper.Extensions.Demo;
 
 namespace uzSurfaceMapper.Utils.Generators
 {

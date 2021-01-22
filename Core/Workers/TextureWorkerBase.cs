@@ -8,7 +8,7 @@ using System.Threading;
 using UnityEngine;
 using uzSurfaceMapper.Core.Generators;
 using uzSurfaceMapper.Core.Workers.Interfaces;
-using uzSurfaceMapper.Extensions;
+using uzSurfaceMapper.Extensions.Demo;
 using Debug = UnityEngine.Debug;
 
 namespace uzSurfaceMapper.Core.Workers

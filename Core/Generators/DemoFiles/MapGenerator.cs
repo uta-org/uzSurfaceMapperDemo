@@ -7,6 +7,7 @@ using System.Threading;
 using UnityEngine;
 using UnityEngine.Core;
 using UnityStandardAssets.Characters.FirstPerson;
+using uzLib.Lite.ExternalCode.Extensions;
 using uzSurfaceMapper.Core.Attrs;
 using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Core.Workers;

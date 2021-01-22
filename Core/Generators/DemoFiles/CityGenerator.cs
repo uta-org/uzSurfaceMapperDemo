@@ -14,7 +14,7 @@ using uzSurfaceMapper.Model;
 using uzSurfaceMapper.Utils;
 using uzSurfaceMapper.Utils.Benchmarks;
 using uzSurfaceMapper.Utils.Benchmarks.Impl;
-using F = uzSurfaceMapper.Extensions.F;
+using F = uzSurfaceMapper.Extensions.Demo.F;
 using UColor = UnityEngine.Color;
 
 #if UNITY_WEBGL
@@ -90,9 +90,13 @@ namespace uzSurfaceMapper.Core.Generators
         /// <value>
         ///     The city json path.
         /// </value>
+#pragma warning disable CS0628 // Nuevo miembro protegido declarado en la clase sealed
         protected static string CityJSONPath => GetOutputSavePath();
+#pragma warning restore CS0628 // Nuevo miembro protegido declarado en la clase sealed
 
+#pragma warning disable CS0628 // Nuevo miembro protegido declarado en la clase sealed
         protected static string CityBINPath => GetOutputSavePath("city", "bin");
+#pragma warning restore CS0628 // Nuevo miembro protegido declarado en la clase sealed
 
         private float Progress { get; set; }
 

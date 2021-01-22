@@ -4,6 +4,8 @@ using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Extensions;
 using Newtonsoft.Json;
 using UnityEngine;
+using uzLib.Lite.ExternalCode.Extensions;
+using uzSurfaceMapper.Extensions.Demo;
 
 namespace uzSurfaceMapper.Model
 {

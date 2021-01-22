@@ -6,6 +6,7 @@ using uzSurfaceMapper.Extensions;
 using Newtonsoft.Json;
 using ProceduralToolkit.Buildings;
 using UnityEngine;
+using uzLib.Lite.ExternalCode.Extensions;
 using SConvert = uzSurfaceMapper.Core.Func.SceneConversion;
 
 namespace uzSurfaceMapper.Model

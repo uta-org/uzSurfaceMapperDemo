@@ -1,5 +1,5 @@
 ﻿using uzSurfaceMapper.Model.Enums;
-using uzSurfaceMapper.Extensions;
+using uzSurfaceMapper.Extensions.Demo;
 
 namespace uzSurfaceMapper.Model
 {

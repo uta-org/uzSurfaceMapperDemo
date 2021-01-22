@@ -46,7 +46,7 @@ using File = uzSurfaceMapperDemo.Utils.File;
 
 #endif
 
-namespace uzSurfaceMapper.Extensions
+namespace uzSurfaceMapper.Extensions.Demo
 {
     public static partial class F
     {
@@ -1072,18 +1072,83 @@ namespace uzSurfaceMapper.Extensions
             return true;
         }
 
-        /// <summary>
-        ///     Draws the line.
-        /// </summary>
-        /// <param name="colors">The colors.</param>
-        /// <param name="p1">The p1.</param>
-        /// <param name="p2">The p2.</param>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
-        /// <param name="c">The c.</param>
+        public static void DrawLine(this Color[] colors, Point p1, Point p2, int width, int height, UEColor c)
+        {
+            DrawLine(colors, p1.x, p1.y, p2.x, p2.y, width, height, (Color)c);
+        }
+
         public static void DrawLine(this Color[] colors, Point p1, Point p2, int width, int height, Color c)
         {
             DrawLine(colors, p1.x, p1.y, p2.x, p2.y, width, height, c);
+        }
+
+        public static void DrawLine(this UEColor[] colors, Point p1, Point p2, int width, int height, UEColor c)
+        {
+            DrawLine(colors, p1.x, p1.y, p2.x, p2.y, width, height, c);
+        }
+
+        public static void DrawLine(this UEColor[] colors, Point p1, Point p2, int width, int height, Color c)
+        {
+            DrawLine(colors, p1.x, p1.y, p2.x, p2.y, width, height, (UEColor)c);
+        }
+
+        public static void DrawLine(this Color32[] colors, Point p1, Point p2, int width, int height, UEColor c)
+        {
+            DrawLine(colors, p1.x, p1.y, p2.x, p2.y, width, height, c);
+        }
+
+        public static void DrawLine(this Color32[] colors, Point p1, Point p2, int width, int height, Color c)
+        {
+            DrawLine(colors, p1.x, p1.y, p2.x, p2.y, width, height, (UEColor)c);
+        }
+
+        public static bool DrawLine<T>(this T[] source, Point p1, Point p2, int width, int height, T t)
+        {
+            return DrawLine(source, p1.x, p1.y, p2.x, p2.y, width, height, t);
+        }
+
+        public static bool DrawLine<T>(this T[] source, int x0, int y0, int x1, int y1, int width, int height, T t)
+        {
+            int sx, sy;
+
+            int dx = Mathf.Abs(x1 - x0),
+                dy = Mathf.Abs(y1 - y0);
+
+            if (x0 < x1)
+                sx = 1;
+            else
+                sx = -1;
+            if (y0 < y1)
+                sy = 1;
+            else
+                sy = -1;
+
+            int err = dx - dy,
+                e2;
+
+            while (true)
+            {
+                source[P(x0, y0, width, height)] = t;
+
+                if (x0 == x1 && y0 == y1)
+                    break;
+
+                e2 = 2 * err;
+
+                if (e2 > -dy)
+                {
+                    err = err - dy;
+                    x0 = x0 + sx;
+                }
+
+                if (e2 < dx)
+                {
+                    err = err + dx;
+                    y0 = y0 + sy;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -1172,76 +1237,6 @@ namespace uzSurfaceMapper.Extensions
             {
                 // colors[P(x0, y0, width, height)] = c;
                 yield return new Point(x0, y0);
-
-                if (x0 == x1 && y0 == y1)
-                    break;
-
-                e2 = 2 * err;
-
-                if (e2 > -dy)
-                {
-                    err = err - dy;
-                    x0 = x0 + sx;
-                }
-
-                if (e2 < dx)
-                {
-                    err = err + dx;
-                    y0 = y0 + sy;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Draws the line.
-        /// </summary>
-        /// <param name="colors">The colors.</param>
-        /// <param name="p1">The p1.</param>
-        /// <param name="p2">The p2.</param>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
-        /// <param name="c">The c.</param>
-        public static void DrawLine(this Color32[] colors, Point p1, Point p2, int width, int height,
-            UEColor c)
-        {
-            DrawLine(colors, p1.x, p1.y, p2.x, p2.y, width, height, c);
-        }
-
-        /// <summary>
-        ///     Draws the line.
-        /// </summary>
-        /// <param name="colors">The colors.</param>
-        /// <param name="x0">The x0.</param>
-        /// <param name="y0">The y0.</param>
-        /// <param name="x1">The x1.</param>
-        /// <param name="y1">The y1.</param>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
-        /// <param name="c">The c.</param>
-        public static void DrawLine(this Color32[] colors, int x0, int y0, int x1, int y1, int width, int height,
-            UEColor c)
-        {
-            int sx = 0,
-                sy = 0;
-
-            int dx = Mathf.Abs(x1 - x0),
-                dy = Mathf.Abs(y1 - y0);
-
-            if (x0 < x1)
-                sx = 1;
-            else
-                sx = -1;
-            if (y0 < y1)
-                sy = 1;
-            else
-                sy = -1;
-
-            int err = dx - dy,
-                e2 = 0;
-
-            while (true)
-            {
-                colors[P(x0, y0, width, height)] = c;
 
                 if (x0 == x1 && y0 == y1)
                     break;

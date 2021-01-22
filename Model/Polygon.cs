@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using uzSurfaceMapper.Model.Enums;
-using uzSurfaceMapper.Extensions;
+using uzSurfaceMapper.Extensions.Demo;
 using uzSurfaceMapper.Utils.Simplification;
 using Newtonsoft.Json;
 using UnityEngine;
+using uzLib.Lite.ExternalCode.Extensions;
 
 namespace uzSurfaceMapper.Model
 {

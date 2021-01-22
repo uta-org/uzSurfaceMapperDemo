@@ -6,7 +6,6 @@ using uzSurfaceMapper.Core.Workers.Interfaces;
 using uzSurfaceMapper.Extensions;
 using uzSurfaceMapper.Model;
 using Color = uzSurfaceMapper.Model.Color;
-using F = uzSurfaceMapper.Extensions.F;
 
 //using UColor = UnityEngine.Color;
 
@@ -17,6 +16,8 @@ using File = uzSurfaceMapperDemo.Utils.File;
 #else
 
 using System.IO;
+using F = uzSurfaceMapper.Extensions.F;
+using FDemo = uzSurfaceMapper.Extensions.Demo.F;
 
 #endif
 
@@ -72,7 +73,7 @@ namespace uzSurfaceMapper.Core.Generators
             else
             {
 #if !UNITY_WEBGL
-                StartCoroutine(F.AsyncReadFileWithWWW<string>(RoadJSONPath, result =>
+                StartCoroutine(FDemo.AsyncReadFileWithWWW<string>(RoadJSONPath, result =>
                 {
                     Model = result.Deserialize<RoadModel>();
                     //RoadModel = Model;
@@ -150,7 +151,7 @@ namespace uzSurfaceMapper.Core.Generators
 
             // ReSharper disable once InvokeAsExtensionMethod
             lock (RoadModel)
-                File.WriteAllBytes(RoadBINPath, F.Serialize(RoadModel, null));
+                File.WriteAllBytes(RoadBINPath, FDemo.Serialize(RoadModel, null));
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using uzSurfaceMapper.Model.Enums;
-using uzSurfaceMapper.Extensions;
+using uzSurfaceMapper.Extensions.Demo;
 using UnityEngine;
 
 namespace uzSurfaceMapper.Model

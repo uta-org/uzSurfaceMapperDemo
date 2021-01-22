@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using uzSurfaceMapper.Extensions;
+using uzSurfaceMapper.Extensions.Demo;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -183,7 +183,7 @@ namespace uzSurfaceMapper.Utils.Benchmarks
 
         private static string GetFormattedString(float ms, bool showGreater, bool toMs = true)
         {
-            var ticks = toMs ? (long) ms : (long) ms * TimeSpan.TicksPerMillisecond;
+            var ticks = toMs ? (long)ms : (long)ms * TimeSpan.TicksPerMillisecond;
             var isGreater = Mathf.Ceil(ms) > Mathf.Round(ms) && ms < 1000 && showGreater;
 
             var s = "{0}{1} {2}";

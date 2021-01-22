@@ -1,4 +1,4 @@
-﻿using uzSurfaceMapper.Extensions;
+﻿using uzSurfaceMapper.Extensions.Demo;
 using UnityEngine;
 
 namespace uzSurfaceMapper.Model
