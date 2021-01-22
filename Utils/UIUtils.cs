@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 
 namespace UnityEngine.UI
 {
@@ -406,6 +407,28 @@ namespace UnityEngine.UI
 
         #endregion "Missing GUIStyles copy"
 
+        public static bool ButtonAsCoroutine(Rect rect, string activeLabel, string disabledLabel,
+            ref Coroutine coroutine, MonoBehaviour mono, IEnumerator enumerator)
+        {
+            if (GUI.Button(rect, coroutine != null ? disabledLabel : activeLabel))
+            {
+                if (coroutine == null)
+                {
+                    coroutine = mono.StartCoroutine(enumerator);
+                }
+                else
+                {
+                    mono.StopCoroutine(coroutine);
+                    coroutine = null;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        // TODO: draw ETA
         public static void DrawBarWithLabel(Rect rect, string status, float fillPerc, float borderWidth = 1)
         {
             DrawBarWithLabel(rect, status, fillPerc, Color.white, Color.gray, borderWidth);

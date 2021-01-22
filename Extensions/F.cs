@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using APIScripts.Utils;
 using Newtonsoft.Json;
+using UnityEngine;
+using uzSurfaceMapper.Model;
 
 namespace DepotToolkit.CommonCode
 {
