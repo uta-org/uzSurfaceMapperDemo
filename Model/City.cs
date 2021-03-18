@@ -7,6 +7,8 @@ using Newtonsoft.Json;
 using ProceduralToolkit.Buildings;
 using UnityEngine;
 using uzLib.Lite.ExternalCode.Extensions;
+using VoronoiLib.Structures;
+using F = uzSurfaceMapper.Extensions.Demo.F;
 using SConvert = uzSurfaceMapper.Core.Func.SceneConversion;
 
 namespace uzSurfaceMapper.Model
@@ -253,13 +255,13 @@ namespace uzSurfaceMapper.Model
                 .Select(b => b.index));
         }
 
-        private static HashSet<Point> SetChunkRoadPoints(Rect rect)
+        private static HashSet<VEdge> SetChunkRoadPoints(Rect rect)
         {
             //var roadModel = MapGenerator.GetInstance<RoadGenerator>()?.Model;
             var roadModel = RoadGenerator.RoadModel;
             // ((RoadGenerator)RoadGenerator.Instance)?.Model;
             if (roadModel == null) throw new Exception("Can't load Road Model!");
-            return new HashSet<Point>(roadModel.SimplifiedRoadNodes.Where(node => rect.Contains((Vector2)node.Value.Position)).Select(n => n.Value.Position));
+            return new HashSet<VEdge>(roadModel.LinkedNodes.Where(node => rect.Contains(F.ToVector2(node))));
         }
 
         /// <summary>

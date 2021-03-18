@@ -36,6 +36,22 @@ namespace uzSurfaceMapper.Model
                     new GroundTypeData(0, 0, new Color(18, 19, 19, 255), GroundType.Asphalt3, GroundBehaviour.Road)
                 },
                 {
+                    GroundType.Asphalt4,
+                    new GroundTypeData(0, 0, new Color(7,7,9, 255), GroundType.Asphalt3, GroundBehaviour.Road)
+                },
+                {
+                    GroundType.Asphalt5,
+                    new GroundTypeData(0, 0, new Color(36,42,26, 255), GroundType.Asphalt3, GroundBehaviour.Road)
+                },
+                {
+                    GroundType.Asphalt6,
+                    new GroundTypeData(0, 0, new Color(7,7,0, 255), GroundType.Asphalt3, GroundBehaviour.Road)
+                },
+                {
+                    GroundType.Asphalt7,
+                    new GroundTypeData(0, 0, new Color(83,89,86, 255), GroundType.Asphalt3, GroundBehaviour.Road)
+                },
+                {
                     GroundType.LightPavement1,
                     new GroundTypeData(0, 0, new Color(178, 190, 184, 255), GroundType.LightPavement1,
                         GroundBehaviour.Building)

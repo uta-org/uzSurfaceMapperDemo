@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using Castle.Core.Internal;
 using Newtonsoft.Json;
+using VoronoiLib.Structures;
 using UColor = UnityEngine.Color;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Local
@@ -18,10 +19,10 @@ namespace uzSurfaceMapper.Model
         private StringBuilder Builder { get; set; }
 
         [JsonIgnore] public static UColor[] Colors { get; set; }
-        public HashSet<RoadNode> RoadNodes { get; } = new HashSet<RoadNode>();
-        public Dictionary<int, RoadNode> SimplifiedRoadNodes { get; set; }
-        public HashSet<Point> IntersectionNodes { get; } = new HashSet<Point>();
-        public HashSet<Point> SimplifiedIntersectionNodes { get; private set; }
+        public HashSet<Point> RoadNodes { get; } = new HashSet<Point>();
+        public Dictionary<int, Point> SimplifiedRoadNodes { get; set; }
+
+        public LinkedList<VEdge> LinkedNodes { get; set; }
 
         [JsonIgnore]
         public bool Optimized
@@ -32,6 +33,24 @@ namespace uzSurfaceMapper.Model
                 {
                     lock (SimplifiedRoadNodes)
                         return SimplifiedRoadNodes != null;
+                }
+                catch
+                {
+                    // If SimplifiedRoadNodes is null this will be triggered
+                    return false;
+                }
+            }
+        }
+
+        [JsonIgnore]
+        public bool Linked
+        {
+            get
+            {
+                try
+                {
+                    lock (LinkedNodes)
+                        return !LinkedNodes.IsNullOrEmpty(); // != null
                 }
                 catch
                 {
@@ -63,31 +82,31 @@ namespace uzSurfaceMapper.Model
 
         private int totalConnectionsCheck = -1;
 
-        [JsonIgnore]
-        public int TotalConnectionsCheck
-        {
-            get
-            {
-                if (totalConnectionsCheck == -1)
-                    totalConnectionsCheck = SimplifiedRoadNodes.Sum(x => (x.Value?.Connections?.Count ?? 0));
+        //[JsonIgnore]
+        //public int TotalConnectionsCheck
+        //{
+        //    get
+        //    {
+        //        if (totalConnectionsCheck == -1)
+        //            totalConnectionsCheck = SimplifiedRoadNodes.Sum(x => (x.Value?.Connections?.Count ?? 0));
 
-                return totalConnectionsCheck;
-            }
-        }
+        //        return totalConnectionsCheck;
+        //    }
+        //}
 
-        private int totalConnectionsSqrCheck = -1;
+        //private int totalConnectionsSqrCheck = -1;
 
-        [JsonIgnore]
-        public int TotalConnectionsSqrCheck
-        {
-            get
-            {
-                if (totalConnectionsSqrCheck == -1)
-                    totalConnectionsSqrCheck = SimplifiedRoadNodes.Sum(x => (x.Value?.Connections?.Count ?? 0) * (x.Value?.Connections?.Count ?? 0));
+        //[JsonIgnore]
+        //public int TotalConnectionsSqrCheck
+        //{
+        //    get
+        //    {
+        //        if (totalConnectionsSqrCheck == -1)
+        //            totalConnectionsSqrCheck = SimplifiedRoadNodes.Sum(x => (x.Value?.Connections?.Count ?? 0) * (x.Value?.Connections?.Count ?? 0));
 
-                return totalConnectionsSqrCheck;
-            }
-        }
+        //        return totalConnectionsSqrCheck;
+        //    }
+        //}
 
         public void Report(float value)
         {

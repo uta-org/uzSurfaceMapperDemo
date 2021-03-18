@@ -25,6 +25,14 @@
         /// </summary>
         Asphalt3,
 
+        Asphalt4,
+
+        Asphalt5,
+
+        Asphalt6,
+
+        Asphalt7,
+
         /// <summary>
         ///     The light pavement1
         /// </summary>

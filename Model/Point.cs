@@ -9,7 +9,7 @@ namespace uzSurfaceMapper.Model
     ///     Struct Point
     /// </summary>
     [Serializable]
-    public struct Point : ICloneable
+    public struct Point : ICloneable, IComparable, IComparable<Point>
     {
         /// <summary>
         ///     The x
@@ -283,7 +283,12 @@ namespace uzSurfaceMapper.Model
         /// <returns>A <see cref="string" /> that represents this instance.</returns>
         public override string ToString()
         {
-            return string.Format("({0}, {1})", x, y);
+            return $"({x}, {y})";
+        }
+
+        public int CompareTo(object obj)
+        {
+            return CompareTo((Point)obj);
         }
 
         /// <summary>
@@ -306,6 +311,12 @@ namespace uzSurfaceMapper.Model
         public static bool operator !=(Point p1, Point p2)
         {
             return p1.x != p2.x || p1.y != p2.y;
+        }
+
+        public int CompareTo(Point p)
+        {
+            // ReSharper disable once ArrangeRedundantParentheses
+            return (x * x + y * y) - (p.x * p.x + p.y * p.y);
         }
 
         /// <summary>
@@ -444,7 +455,7 @@ namespace uzSurfaceMapper.Model
         /// <returns></returns>
         public Point NextDirection(ref InnerDirection lastDirection)
         {
-            lastDirection = InnerDirections.GetPerpendicular(lastDirection);
+            lastDirection = lastDirection.GetPerpendicular();
             return GetInnerPoint(lastDirection);
         }
 

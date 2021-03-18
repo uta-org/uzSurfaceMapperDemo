@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,6 +57,17 @@ namespace uzSurfaceMapper.Core.Workers
 
         public virtual Model.Color[] CurrentColors { get; set; }
 
+        public bool IsFinished { get; set; }
+
+        public bool saveOnDestroy;
+
+        public bool saveAtFinish = true;
+
+        public virtual void OnFinish()
+        {
+            if (saveAtFinish) SaveTexture(CurrentColors, true);
+        }
+
         public static void SetReference(Color[] colors)
         {
             MapColors = colors;
@@ -88,6 +100,7 @@ namespace uzSurfaceMapper.Core.Workers
                     }
                     watch.Stop();
                     Debug.Log($"Finished worker with name: '{worker.Name}'! Elapsed {watch.ElapsedMilliseconds} ms.");
+                    worker.IsFinished = true;
 
                     //FinishedWorks.Enqueue(new Tuple<string, Components.Color[]>(tuple.Item1, cloned));
                 }
@@ -141,8 +154,8 @@ namespace uzSurfaceMapper.Core.Workers
         private void SaveAsColor32(Color32[] colorsArray)
         {
             var path = Path.Combine(Environment.CurrentDirectory, $"{Name}.png");
+            Debug.Log($"Saving texture from worker {GetType().Name} at '{path}'...");
             F.SaveAndClear(path, colorsArray, MapGenerator.mapWidth, MapGenerator.mapHeight);
-
             Debug.Log($"Saved successfully texture in '{path}' for {Name} worker!");
             isTextureSaved = true;
             isSavingTexture = false;
@@ -154,5 +167,17 @@ namespace uzSurfaceMapper.Core.Workers
         }
 
         private float Progress { get; set; }
+
+        private void Start()
+        {
+            Debug.Log("Started main texture worker");
+            StartCoroutine(CheckFinish());
+        }
+
+        private IEnumerator CheckFinish()
+        {
+            yield return new WaitUntil(() => IsFinished);
+            OnFinish();
+        }
     }
 }

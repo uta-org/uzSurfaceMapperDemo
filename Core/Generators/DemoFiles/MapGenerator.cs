@@ -124,6 +124,8 @@ namespace uzSurfaceMapper.Core.Generators
         /// </summary>
         [HideInInspector] [SerializeField] public bool continueWhenFinish;
 
+        [HideInInspector] [SerializeField] public bool loadDataOnMemoryAtStart = true;
+
         public static Texture2D MapTexture { get; private set; }
 
         public static City CityModel { get; internal set; }

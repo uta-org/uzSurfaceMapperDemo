@@ -8,6 +8,7 @@ using UnityEngine;
 using uzSurfaceMapper.Core.Generators;
 using uzSurfaceMapper.Extensions.Demo;
 using uzSurfaceMapper.Model;
+using VoronoiLib.Structures;
 
 //using uzLib.Lite.ExternalCode.Extensions;
 
@@ -41,7 +42,7 @@ namespace uzSurfaceMapper.Utils.Generators
         //{
         //}
 
-        public static IEnumerable<Road> CreateRoad(this IEnumerable<Point> points, StringBuilder builder)
+        public static IEnumerable<Road> CreateRoad(this IEnumerable<VEdge> points, StringBuilder builder)
         {
             if (points.IsNullOrEmpty())
             {
@@ -66,99 +67,119 @@ namespace uzSurfaceMapper.Utils.Generators
             //Debug.Log(builder?.ToString());
         }
 
-        private static IEnumerable<List<Vector3>> GetRoads(IEnumerable<Point> points, StringBuilder builder)
+        private static IEnumerable<List<Vector3>> GetRoads(IEnumerable<VEdge> points, StringBuilder builder)
         {
-            var model = RoadGenerator.RoadModel;
+            //var model = RoadGenerator.RoadModel;
 
-            var queue = new Queue<Point>(points);
-            int i = 0;
-
-            builder?.AppendLine($"\tcount: {queue.Count}");
-
-            var dictionary = new Dictionary<int, List<Vector3>>();
-
-            while (queue.Count > 0)
+            foreach (var point in points)
             {
-                var list = new List<Vector3>();
-
-                var pt = queue.Dequeue();
-                var itemIndex = pt.GetKey();
-                dictionary.Add(itemIndex, list);
-
-                lock (model.SimplifiedRoadNodes)
+                var leftList = new List<Vector3>();
+                var rightList = new List<Vector3>();
+                foreach (var leftNeighbor in point.Left.Neighbors)
                 {
-                    var node = model.SimplifiedRoadNodes[itemIndex];
-
-                    builder?.AppendLine($"\troad iteration: {i}");
-
-                    //var conn = node.Connections;
-                    var nodes = GetRoadNodes(node, ptVal =>
-                        {
-                            if (ptVal.HasValue) queue = new Queue<Point>(queue.Remove(ptVal.Value));
-                            return queue;
-                        },
-                        parentNodeIndex => { return dictionary[parentNodeIndex]; },
-                        builder);
-
-                    foreach (var point in nodes)
-                        list.Add(CityGenerator.SConv.GetRealPositionOnMap((Vector2)point).GetHeightForPoint());
-
-                    yield return list;
-                    ++i;
+                    var p = new Vector2((float)leftNeighbor.X, (float)leftNeighbor.Y);
+                    leftList.Add(CityGenerator.SConv.GetRealPositionOnMap(p).GetHeightForPoint());
                 }
-            }
-        }
 
-        private static IEnumerable<Point> GetRoadNodes(RoadNode node, Func<Point?, Queue<Point>> queueFunc, Func<int, List<Vector3>> parentFunc, StringBuilder builder, int level = -1)
-        {
-            if (queueFunc == null) throw new ArgumentNullException(nameof(queueFunc));
-            if (parentFunc == null) throw new ArgumentNullException(nameof(parentFunc));
+                foreach (var rightNeighbor in point.Right.Neighbors)
+                {
+                    var p = new Vector2((float)rightNeighbor.X, (float)rightNeighbor.Y);
+                    rightList.Add(CityGenerator.SConv.GetRealPositionOnMap(p).GetHeightForPoint());
+                }
 
-            //lock (node.Connections) // TODO?
-
-            var conn = node.Connections;
-            if (conn.IsNullOrEmpty())
-            {
-                yield return node.Position;
-                yield break;
+                yield return leftList;
+                yield return rightList;
             }
 
-            if (queueFunc(null).Count == 0) yield break;
+            //var queue = new Queue<VEdge>(points);
+            //int i = 0;
 
-            ++level;
-            builder?.AppendLine($"{new string('\t', 2)}level: {level} -> {queueFunc(null).Count} items");
+            //builder?.AppendLine($"\tcount: {queue.Count}");
 
-            //if (conn.Count == 1)
+            //var dictionary = new Dictionary<int, List<Vector3>>();
+
+            //while (queue.Count > 0)
             //{
-            //    var firstNode = conn.First().GetNode();
-            //    ////var firstPoint = conn.First().GetPoint();
+            //    var list = new List<Vector3>();
 
-            //    var list = parentFunc(firstNode.ParentNodes.First()); // TODO: parent nodes should be one...
-            //    list.Add(CityGenerator.SConv.GetRealPositionOnMap((Vector2)conn.First().GetPoint()).GetHeightForPoint());
+            //    var pt = queue.Dequeue();
+            //    var itemIndex = pt.GetKey();
+            //    dictionary.Add(itemIndex, list);
+
+            //    lock (model.LinkedNodes)
+            //    {
+            //        var node = model.SimplifiedRoadNodes[itemIndex];
+
+            //        builder?.AppendLine($"\troad iteration: {i}");
+
+            //        //var conn = node.Connections;
+            //        var nodes = GetRoadNodes(node, ptVal =>
+            //            {
+            //                if (ptVal.HasValue) queue = new Queue<Point>(queue.Remove(ptVal.Value));
+            //                return queue;
+            //            },
+            //            parentNodeIndex => { return dictionary[parentNodeIndex]; },
+            //            builder);
+
+            //        foreach (var point in nodes)
+            //            list.Add(CityGenerator.SConv.GetRealPositionOnMap((Vector2)point).GetHeightForPoint());
+
+            //        yield return list;
+            //        ++i;
+            //    }
             //}
-            //else
-            {
-                foreach (var item in conn)
-                {
-                    var pt = item.GetPoint();
-                    if (!queueFunc(null).Contains(pt)) yield break;
-                    yield return pt;
-                    if (queueFunc(pt).Count == 0) yield break;
-
-                    var subnode = pt.GetKey().GetNode();
-                    var pts = GetRoadNodes(subnode, queueFunc, parentFunc, builder, level);
-                    foreach (var point in pts)
-                        yield return point;
-                }
-            }
         }
+
+        //private static IEnumerable<Point> GetRoadNodes(VEdge node, Func<Point?, Queue<Point>> queueFunc, Func<int, List<Vector3>> parentFunc, StringBuilder builder, int level = -1)
+        //{
+        //    if (queueFunc == null) throw new ArgumentNullException(nameof(queueFunc));
+        //    if (parentFunc == null) throw new ArgumentNullException(nameof(parentFunc));
+
+        //    //lock (node.Connections) // TODO?
+
+        //    var conn = node.Connections;
+        //    if (conn.IsNullOrEmpty())
+        //    {
+        //        yield return node.Position;
+        //        yield break;
+        //    }
+
+        //    if (queueFunc(null).Count == 0) yield break;
+
+        //    ++level;
+        //    builder?.AppendLine($"{new string('\t', 2)}level: {level} -> {queueFunc(null).Count} items");
+
+        //    //if (conn.Count == 1)
+        //    //{
+        //    //    var firstNode = conn.First().GetNode();
+        //    //    ////var firstPoint = conn.First().GetPoint();
+
+        //    //    var list = parentFunc(firstNode.ParentNodes.First()); // TODO: parent nodes should be one...
+        //    //    list.Add(CityGenerator.SConv.GetRealPositionOnMap((Vector2)conn.First().GetPoint()).GetHeightForPoint());
+        //    //}
+        //    //else
+        //    {
+        //        foreach (var item in conn)
+        //        {
+        //            var pt = item.GetPoint();
+        //            if (!queueFunc(null).Contains(pt)) yield break;
+        //            yield return pt;
+        //            if (queueFunc(pt).Count == 0) yield break;
+
+        //            var subnode = pt.GetKey().GetNode();
+        //            var pts = GetRoadNodes(subnode, queueFunc, parentFunc, builder, level);
+        //            foreach (var point in pts)
+        //                yield return point;
+        //        }
+        //    }
+        //}
 
         internal static Point GetPoint(this int index)
         {
-            return index.GetNode().Position;
+            return index.GetNode();
         }
 
-        private static RoadNode GetNode(this int index)
+        private static Point GetNode(this int index)
         {
             lock (RoadGenerator.RoadModel.SimplifiedRoadNodes)
                 return RoadGenerator.RoadModel.SimplifiedRoadNodes[index];

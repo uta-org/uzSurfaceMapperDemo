@@ -24,6 +24,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Extensions;
 using UnityEngine.Networking;
+using VoronoiLib.Structures;
 
 //using uzSurfaceMapper.Utils.Meshs;
 //using uzSurfaceMapper.Utils.Noises;
@@ -1102,12 +1103,12 @@ namespace uzSurfaceMapper.Extensions.Demo
             DrawLine(colors, p1.x, p1.y, p2.x, p2.y, width, height, (UEColor)c);
         }
 
-        public static bool DrawLine<T>(this T[] source, Point p1, Point p2, int width, int height, T t)
+        public static bool DrawLine<T>(this T[] source, Point p1, Point p2, int width, int height, T t, bool inverse = true)
         {
-            return DrawLine(source, p1.x, p1.y, p2.x, p2.y, width, height, t);
+            return DrawLine(source, p1.x, p1.y, p2.x, p2.y, width, height, t, inverse);
         }
 
-        public static bool DrawLine<T>(this T[] source, int x0, int y0, int x1, int y1, int width, int height, T t)
+        public static bool DrawLine<T>(this T[] source, int x0, int y0, int x1, int y1, int width, int height, T t, bool inverse = true)
         {
             int sx, sy;
 
@@ -1128,7 +1129,9 @@ namespace uzSurfaceMapper.Extensions.Demo
 
             while (true)
             {
-                source[P(x0, y0, width, height)] = t;
+                var i = inverse ? P(x0, y0, width, height) : Pn(x0, y0, width);
+                if (i > 0 && i < source.Length)
+                    source[i] = t;
 
                 if (x0 == x1 && y0 == y1)
                     break;
@@ -1149,6 +1152,57 @@ namespace uzSurfaceMapper.Extensions.Demo
             }
 
             return true;
+        }
+
+        public static IEnumerable DrawLineAsEnumerable<T>(this T[] source, Point p1, Point p2, int width, int height, T t)
+        {
+            return DrawLineAsEnumerable(source, p1.x, p1.y, p2.x, p2.y, width, height, t);
+        }
+
+        public static IEnumerable DrawLineAsEnumerable<T>(this T[] source, int x0, int y0, int x1, int y1, int width, int height, T t)
+        {
+            int sx, sy;
+
+            int dx = Mathf.Abs(x1 - x0),
+                dy = Mathf.Abs(y1 - y0);
+
+            if (x0 < x1)
+                sx = 1;
+            else
+                sx = -1;
+            if (y0 < y1)
+                sy = 1;
+            else
+                sy = -1;
+
+            int err = dx - dy,
+                e2;
+
+            while (true)
+            {
+                int i = P(x0, y0, width, height);
+                if (i > 0 && i < source.Length)
+                    source[i] = t;
+
+                if (x0 == x1 && y0 == y1)
+                    yield break;
+
+                e2 = 2 * err;
+
+                if (e2 > -dy)
+                {
+                    err = err - dy;
+                    x0 = x0 + sx;
+                }
+
+                if (e2 < dx)
+                {
+                    err = err + dx;
+                    y0 = y0 + sy;
+                }
+
+                yield return null;
+            }
         }
 
         /// <summary>
@@ -1203,6 +1257,162 @@ namespace uzSurfaceMapper.Extensions.Demo
                     y0 = y0 + sy;
                 }
             }
+        }
+
+        public static void DrawPoint<T>(this T[] source, Point p, int mapWidth, int mapHeight, T t,
+    int pointSize = 5, bool inverse = true)
+        {
+            DrawPoint(source, p.x, p.y, mapWidth, mapHeight, t, pointSize, inverse);
+        }
+
+        public static void DrawPoint<T>(this T[] source, double x, double y, int mapWidth, int mapHeight, T t,
+            int pointSize = 5, bool inverse = true)
+        {
+            DrawPoint(source, (int)x, (int)y, mapWidth, mapHeight, t, pointSize, inverse);
+        }
+
+        public static void DrawPoint<T>(this T[] source, int x, int y, int mapWidth, int mapHeight, T t,
+            int pointSize = 5, bool inverse = true)
+        {
+            for (var _x = x - pointSize; _x < x + pointSize; ++_x)
+            {
+                for (var _y = y - pointSize; _y < y + pointSize; ++_y)
+                {
+                    var i = inverse ? P(_x, _y, mapWidth, mapHeight) : Pn(_x, _y, mapWidth);
+                    if (i > 0 && i < source.Length)
+                        source[i] = t;
+                }
+            }
+        }
+
+        public static void DrawPoint(this UEColor[] source, Point p, int mapWidth, int mapHeight, UEColor t,
+            int pointSize = 5, bool inverse = true)
+        {
+            DrawPoint(source, p.x, p.y, mapWidth, mapHeight, t, pointSize, inverse);
+        }
+
+        public static void DrawPoint(this UEColor[] source, double x, double y, int mapWidth, int mapHeight, UEColor t,
+            int pointSize = 5, bool inverse = true)
+        {
+            DrawPoint(source, (int)x, (int)y, mapWidth, mapHeight, t, pointSize, inverse);
+        }
+
+        public static void DrawPoint(this UEColor[] source, int x, int y, int mapWidth, int mapHeight, UEColor t,
+            int pointSize = 5, bool inverse = true)
+        {
+            for (var _x = x - pointSize; _x < x + pointSize; ++_x)
+            {
+                for (var _y = y - pointSize; _y < y + pointSize; ++_y)
+                {
+                    var i = inverse ? P(_x, _y, mapWidth, mapHeight) : Pn(_x, _y, mapWidth);
+                    if (i > 0 && i < source.Length)
+                    {
+                        source[i] = t.a < 1 ? UEColor.Lerp(source[i], t, t.a) : t;
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable DrawPointAsEnumerable<T>(this T[] source, Point p, int mapWidth, int mapHeight, T t,
+            int pointSize = 5, bool inverse = true)
+        {
+            return DrawPointAsEnumerable(source, p.x, p.y, mapWidth, mapHeight, t, pointSize, inverse);
+        }
+
+        public static IEnumerable DrawPointAsEnumerable<T>(this T[] source, double x, double y, int mapWidth, int mapHeight, T t,
+            int pointSize = 5, bool inverse = true)
+        {
+            return DrawPointAsEnumerable(source, (int)x, (int)y, mapWidth, mapHeight, t, pointSize, inverse);
+        }
+
+        public static IEnumerable DrawPointAsEnumerable<T>(this T[] source, int x, int y, int mapWidth, int mapHeight, T t,
+            int pointSize = 5, bool inverse = true)
+        {
+            for (var _x = x - pointSize; _x < x + pointSize; ++_x)
+            {
+                for (var _y = y - pointSize; _y < y + pointSize; ++_y)
+                {
+                    var i = inverse ? P(_x, _y, mapWidth, mapHeight) : Pn(_x, _y, mapWidth);
+                    if (i > 0 && i < source.Length)
+                        source[i] = t;
+                    yield return null;
+                }
+            }
+        }
+
+        public static IEnumerable DrawPointAsEnumerable(this UEColor[] source, Point p, int mapWidth, int mapHeight, UEColor t,
+            int pointSize = 5, bool inverse = true)
+        {
+            return DrawPointAsEnumerable(source, p.x, p.y, mapWidth, mapHeight, t, pointSize, inverse);
+        }
+
+        public static IEnumerable DrawPointAsEnumerable(this UEColor[] source, double x, double y, int mapWidth, int mapHeight, UEColor t,
+            int pointSize = 5, bool inverse = true)
+        {
+            return DrawPointAsEnumerable(source, (int)x, (int)y, mapWidth, mapHeight, t, pointSize, inverse);
+        }
+
+        public static IEnumerable DrawPointAsEnumerable(this UEColor[] source, int x, int y, int mapWidth, int mapHeight, UEColor t,
+            int pointSize = 5, bool inverse = true)
+        {
+            for (var _x = x - pointSize; _x < x + pointSize; ++_x)
+            {
+                for (var _y = y - pointSize; _y < y + pointSize; ++_y)
+                {
+                    var i = inverse ? P(_x, _y, mapWidth, mapHeight) : Pn(_x, _y, mapWidth);
+                    if (i > 0 && i < source.Length)
+                    {
+                        source[i] = t.a < 1 ? UEColor.Lerp(source[i], t, t.a) : t;
+                    }
+
+                    yield return null;
+                }
+            }
+        }
+
+        public static void DrawHollowPoint<T>(this T[] source, Point p, int mapWidth, int mapHeight, T t,
+            int pointSize = 5, int border = 1, bool inverse = true)
+        {
+            DrawHollowPoint(source, p.x, p.y, mapWidth, mapHeight, t, pointSize, border, inverse);
+        }
+
+        public static void DrawHollowPoint<T>(this T[] source, double x, double y, int mapWidth, int mapHeight, T t,
+            int pointSize = 5, int border = 1, bool inverse = true)
+        {
+            DrawHollowPoint(source, (int)x, (int)y, mapWidth, mapHeight, t, pointSize, border, inverse);
+        }
+
+        public static void DrawHollowPoint<T>(this T[] source, int x, int y, int mapWidth, int mapHeight, T t,
+            int pointSize = 5, int border = 1, bool inverse = true)
+        {
+            for (var _x = x - pointSize; _x < x + pointSize; ++_x)
+            {
+                for (var _y = y - pointSize; _y < y + pointSize; ++_y)
+                {
+                    int dx = x - (_x + pointSize);
+                    int dy = y - (_y + pointSize);
+                    if (dx > border && dx < pointSize - border - 1 ||
+                        dy > border && dy < pointSize - border - 1) continue;
+                    var i = inverse ? P(_x, _y, mapWidth, mapHeight) : Pn(_x, _y, mapWidth);
+                    if (i > 0 && i < source.Length)
+                        source[i] = t;
+                }
+            }
+        }
+
+        public static GUIStyle GetSelectionStyle(UEColor c, int size = 16, int border = 1)
+        {
+            var texture = new Texture2D(size, size);
+            var colors = new UEColor[size * size];
+            DrawHollowPoint(colors, 8, 8, size, size, c, size / 2, border);
+            texture.SetPixels(colors);
+            texture.Apply();
+
+            var style = new GUIStyle
+            {
+                normal = { background = texture }
+            };
+            return style;
         }
 
         /// <summary>
@@ -3912,7 +4122,8 @@ namespace uzSurfaceMapper.Extensions.Demo
 
             using (var stream = new ProgressStream())
             {
-                stream.ProgressChanged += callback;
+                if (callback != null)
+                    stream.ProgressChanged += callback;
 
                 var binSerializer = new BinaryFormatter();
                 binSerializer.Serialize(stream, obj);
@@ -3922,14 +4133,22 @@ namespace uzSurfaceMapper.Extensions.Demo
 
         // DSerialize collection of any type to a byte stream
 
-        public static T Deserialize<T>(this byte[] serializedObj, FloatProgressChangedEventHandler callback)
+        //
+
+        public static T Deserialize<T>(this byte[] serializedObj,
+            FloatProgressChangedEventHandler callback)
         {
             if (callback == null) throw new ArgumentNullException(nameof(callback));
+            return Deserialize<T>(serializedObj, callback);
+        }
 
+        public static T DeserializeWithOptionalCallback<T>(this byte[] serializedObj, FloatProgressChangedEventHandler callback)
+        {
             T obj;
             using (var stream = new ProgressStream(serializedObj))
             {
-                stream.ProgressChanged += callback;
+                if (callback != null)
+                    stream.ProgressChanged += callback;
 
                 var binSerializer = new BinaryFormatter();
                 obj = (T)binSerializer.Deserialize(stream);
@@ -3953,6 +4172,111 @@ namespace uzSurfaceMapper.Extensions.Demo
         public static string ToDetailedString<K, V>(this KeyValuePair<K, V> keyValuePair)
         {
             return $"\n{{\n\tKey: '{keyValuePair.Key}'\n\tValue: '{keyValuePair.Value}'}}\n";
+        }
+
+        public static void SetPixelInverted(this Texture2D texture, int x, int y, UEColor c)
+        {
+            texture.SetPixel(x, texture.height - y - 1, c);
+        }
+
+        public static bool IsRoadNode(this UEColor color)
+        {
+            return IsRoadNode((Color)color);
+        }
+
+        public static bool IsRoadNode(this Color color, bool enableFoolColors = false)
+        {
+            bool isRoad = color == GroundType.Asphalt.GetColor()
+                          || color == GroundType.Asphalt2.GetColor()
+                          || color == GroundType.Asphalt3.GetColor()
+                          || color == GroundType.Asphalt4.GetColor()
+                          || color == GroundType.Asphalt5.GetColor()
+                          || color == GroundType.Asphalt6.GetColor()
+                          || color == GroundType.Asphalt7.GetColor()
+                ;
+
+            if (enableFoolColors)
+            {
+                return isRoad
+                       || color == Color.blue // This two colors are used when using flood fill algorithm
+                       || color == Color.red;
+            }
+
+            return isRoad;
+        }
+
+        //public static Vector2 GetCenter(this VEdge node)
+        //{
+        //    var startPoint = new Vector2((float)node.Start.X, (float)node.Start.Y);
+        //    var endPoint = new Vector2((float)node.End.X, (float)node.End.Y);
+        //    return new Vector2(startPoint.x + endPoint.x / 2, startPoint.y + endPoint.y / 2);
+        //}
+
+        public static float FindDegree(this Point p)
+        {
+            return FindDegree(p.x, p.y);
+        }
+
+        public static float FindDegree(int x, int y)
+        {
+            float value = (float)((Mathf.Atan2(x, y) / Math.PI) * 180f);
+            if (value < 0) value += 360f;
+
+            return value;
+        }
+
+        #region "VoronoiLib conversions (FortuneSite, VPoint, VEdge to Vector2 and Point structs)"
+
+        public static Vector2 ToVector2(this FortuneSite site)
+        {
+            return new Vector2((float)site.X, (float)site.Y);
+        }
+
+        public static Vector2 ToVector2(this VPoint site)
+        {
+            return new Vector2((float)site.X, (float)site.Y);
+        }
+
+        public static Vector2 ToVector2(this VEdge edge)
+        {
+            return edge.End.ToVector2() - edge.Start.ToVector2();
+        }
+
+        public static Point ToPoint(this FortuneSite site)
+        {
+            return new Point((int)site.X, (int)site.Y);
+        }
+
+        public static Vector2 ToPoint(this VPoint site)
+        {
+            return new Point((int)site.X, (int)site.Y);
+        }
+
+        public static Vector2 ToPoint(this VEdge edge)
+        {
+            return new Point(edge.End.ToVector2() - edge.Start.ToVector2());
+        }
+
+        #endregion "VoronoiLib conversions (FortuneSite, VPoint, VEdge to Vector2 and Point structs)"
+
+        public static IEnumerable<Tuple<Vector2, Vector2>> GenerateDelaunay(this List<FortuneSite> points)
+        {
+            var processed = new HashSet<FortuneSite>();
+            foreach (var site in points)
+            {
+                foreach (var neighbor in site.Neighbors)
+                {
+                    if (!processed.Contains(neighbor))
+                    {
+                        yield return
+                            new Tuple<Vector2, Vector2>(
+                                new Vector2((float)site.X, (float)site.Y),
+                                new Vector2((float)neighbor.X, (float)neighbor.Y)
+                            );
+                    }
+                }
+                processed.Add(site);
+            }
         }
 
 #if UNITY_EDITOR

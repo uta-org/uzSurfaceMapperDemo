@@ -5,6 +5,7 @@ using UnityEngine;
 using uzSurfaceMapper.Core.Func;
 using uzSurfaceMapper.Extensions;
 using uzSurfaceMapper.Extensions.Demo;
+using VoronoiLib.Structures;
 
 namespace uzSurfaceMapper.Model
 {
@@ -26,7 +27,7 @@ namespace uzSurfaceMapper.Model
 
         [JsonIgnore] public Vector2 Position => r.position + Vector2.one * SceneConversion.Instance.SinglePlaneSize / 2;
 
-        [JsonIgnore] public HashSet<Point> roadPoints;
+        [JsonIgnore] public HashSet<VEdge> roadPoints;
 
         /// <summary>
         ///     Prevents a default instance of the <see cref="Chunk" /> class from being created.

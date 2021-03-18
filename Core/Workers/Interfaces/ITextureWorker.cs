@@ -7,6 +7,7 @@ namespace uzSurfaceMapper.Core.Workers.Interfaces
     {
         string Name { get; }
         bool IsReady { get; set; }
+        bool IsFinished { get; set; }
 
         string Status { get; }
         Color[] CurrentColors { get; set; }
