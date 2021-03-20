@@ -19,20 +19,70 @@ namespace uzSurfaceMapper.Model
         private StringBuilder Builder { get; set; }
 
         [JsonIgnore] public static UColor[] Colors { get; set; }
-        public HashSet<Point> RoadNodes { get; } = new HashSet<Point>();
-        public Dictionary<int, Point> SimplifiedRoadNodes { get; set; }
+        public HashSet<Point> OuterRoadNodes { get; } = new HashSet<Point>();
+        public List<Point> OuterSimplifiedRoadNodes { get; set; }
 
-        public LinkedList<VEdge> LinkedNodes { get; set; }
+        public HashSet<RoadNode> InnerRoadNodes { get; } = new HashSet<RoadNode>();
+        public List<PathNode> InnerSimplifiedRoadNodes { get; set; }
+
+        //[JsonIgnore]
+        //[Obsolete("Must use PathNodes, if not, you must uncomment the assignation of `LinkedNodes = FortunesAlgorithm.Run(...)` in the Link method of this class.")]
+        //public LinkedList<VEdge> LinkedNodes { get; set; }
+
+        [JsonIgnore] // This is a midway to create innersimplifiedroadnodes
+        public HashSet<PathNode> PathNodes { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [keep inner optimization] (this value can be changed manually in the JSON file to force optimization).
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [keep inner optimization]; otherwise, <c>false</c>.
+        /// </value>
+        public bool KeepInnerOptimization { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [keep outer optimization] (this value can be changed manually in the JSON file to force optimization).
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [keep outer optimization]; otherwise, <c>false</c>.
+        /// </value>
+        public bool KeepOuterOptimization { get; set; }
 
         [JsonIgnore]
-        public bool Optimized
+        public bool OuterOptimized
         {
             get
             {
+                // Remove this line if you want Optimize call at every ConnectAtStart
+                //if (!KeepOuterOptimization)
+                //    return false;
+
                 try
                 {
-                    lock (SimplifiedRoadNodes)
-                        return SimplifiedRoadNodes != null;
+                    lock (OuterSimplifiedRoadNodes)
+                        return OuterSimplifiedRoadNodes != null;
+                }
+                catch
+                {
+                    // If SimplifiedRoadNodes is null this will be triggered
+                    return false;
+                }
+            }
+        }
+
+        [JsonIgnore]
+        public bool InnerOptimized
+        {
+            get
+            {
+                // Same here
+                if (!KeepInnerOptimization)
+                    return false;
+
+                try
+                {
+                    lock (InnerSimplifiedRoadNodes)
+                        return InnerSimplifiedRoadNodes != null;
                 }
                 catch
                 {
@@ -49,8 +99,8 @@ namespace uzSurfaceMapper.Model
             {
                 try
                 {
-                    lock (LinkedNodes)
-                        return !LinkedNodes.IsNullOrEmpty(); // != null
+                    lock (PathNodes)
+                        return !PathNodes.IsNullOrEmpty(); // != null
                 }
                 catch
                 {

@@ -1,14 +1,43 @@
 ﻿using System;
-using System.Collections.Generic;
-using uzSurfaceMapper.Extensions.Demo;
-using static uzSurfaceMapper.Core.Generators.MapGenerator;
+using Newtonsoft.Json;
+using uzSurfaceMapper.Model.Enums;
 
 namespace uzSurfaceMapper.Model
 {
+    [Serializable]
+    public class RoadNode
+    {
+        public int Thickness { get; set; }
+        [JsonIgnore] public InnerDirection FlowDirection { get; }
+        [JsonIgnore] public InnerDirection CrossDirection { get; } // Perpendicular
+        public Point Position { get; set; }
+
+        public RoadNode()
+        {
+        }
+
+        public RoadNode(int x, int y) : this(new Point(x, y))
+        {
+        }
+
+        public RoadNode(Point position)
+        {
+            Position = position;
+        }
+
+        public RoadNode(int thickness, InnerDirection flowDirection, InnerDirection crossDirection, Point position)
+        {
+            Thickness = thickness;
+            FlowDirection = flowDirection;
+            CrossDirection = crossDirection;
+            Position = position;
+        }
+    }
+
     //[Serializable]
     //public class RoadNode : IPathNode
     //{
-    //    //[JsonConverter(typeof(RoadNodeConverter))]
+    //    //[JsonConverter(typeof(PathNodeConverter))]
     //    // Remove this...
     //    public HashSet<int> Connections { get; set; } // TODO: IPathNode<T> + RoadNode : IPathNode<RoadNode> + Connections (ConcurrentBag<RoadNode>), but can't be serialized due to StackOverflow and OutOfMemory exceptions
 

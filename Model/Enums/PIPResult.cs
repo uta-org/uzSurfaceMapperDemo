@@ -1,7 +1,7 @@
 ﻿namespace uzSurfaceMapper.Model.Enums
 {
     /// <summary>
-    ///     Point-in-Polygon problem result
+    ///     Position-in-Polygon problem result
     /// </summary>
     public enum PIPResult
     {

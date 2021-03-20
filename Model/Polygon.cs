@@ -9,6 +9,7 @@ using uzSurfaceMapper.Utils.Simplification;
 using Newtonsoft.Json;
 using UnityEngine;
 using uzLib.Lite.ExternalCode.Extensions;
+using static uzSurfaceMapper.Core.Generators.MapGenerator;
 
 namespace uzSurfaceMapper.Model
 {
@@ -722,7 +723,9 @@ namespace uzSurfaceMapper.Model
 
             if (!CanBeOptimized())
             {
-                Debug.LogWarning("Vertices from this polygon are null!");
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                if (!IS_DEMO)
+                    Debug.LogWarning("Vertices from this polygon are null!");
                 return;
             }
 
@@ -743,7 +746,9 @@ namespace uzSurfaceMapper.Model
         {
             if (!CanBeOptimized())
             {
-                Debug.LogWarning("Poly can't be optimized!");
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                if (!IS_DEMO)
+                    Debug.LogWarning("Poly can't be optimized!");
                 return;
             }
 

@@ -182,6 +182,9 @@ namespace uzSurfaceMapper.Model
 
             var city = MapGenerator.CityModel;
 
+            if (city == null)
+                Debug.LogWarning("Something went wrong went loading city.");
+
             var vector = new Vector2(px, py);
             debugStr = $"Getting chunk from {city.chunks?.Count} loaded chunks at {vector} ({x}, {y})!\n\nSConv Instance\n{new string('=', 10)}\n{CityGenerator.SConv}\n\n";
 
@@ -235,11 +238,20 @@ namespace uzSurfaceMapper.Model
                 var set = SetChunkBuilds(rectOnMap);
                 chunk.listOfIndexBuildings = set;
 
-                Debug.Log($"Set: {set.Count} buildings. (Loaded: {city.buildings.Count}) || Rect: {rectOnMap}");
+                //Debug.Log($"Set: {set.Count} buildings. (Loaded: {city.buildings.Count}) || Rect: {rectOnMap}");
             }
 
-            if (chunk.roadPoints == null)
-                chunk.roadPoints = SetChunkRoadPoints(rectOnMap);
+            if (chunk.RoadPoints == null)
+            {
+                chunk.RoadPoints = SetChunkRoadPoints(rectOnMap);
+                if (chunk.RoadPoints?.Count > 0)
+                {
+                    var nodes = chunk.RoadPoints; // .Select(n => RoadGenerator.RoadModel.PathNodes.Find(n)).ToList();
+                    var neighborCount = nodes?.Sum(n => n.Neighbors?.Count ?? 0);
+                    Debug.Log(
+                        $"Set: {chunk.RoadPoints.Count} road nodes. (Loaded: {RoadGenerator.RoadModel.PathNodes?.Count} | Neighbors Count: {neighborCount}) || Rect: {rectOnMap}");
+                }
+            }
             //Debug.Log($"Count of buildings at chunk ({rect.x}, {rect.y}): {_c.listOfBuildings.Count}");
 
             // We add the chunk
@@ -255,13 +267,14 @@ namespace uzSurfaceMapper.Model
                 .Select(b => b.index));
         }
 
-        private static HashSet<VEdge> SetChunkRoadPoints(Rect rect)
+        private static List<PathNode> SetChunkRoadPoints(Rect rect)
         {
             //var roadModel = MapGenerator.GetInstance<RoadGenerator>()?.Model;
             var roadModel = RoadGenerator.RoadModel;
             // ((RoadGenerator)RoadGenerator.Instance)?.Model;
             if (roadModel == null) throw new Exception("Can't load Road Model!");
-            return new HashSet<VEdge>(roadModel.LinkedNodes.Where(node => rect.Contains(F.ToVector2(node))));
+            if (roadModel.InnerSimplifiedRoadNodes.IsNullOrEmpty()) return null;
+            return new List<PathNode>(roadModel.InnerSimplifiedRoadNodes.Where(node => rect.Contains((Vector2)node.Position)));
         }
 
         /// <summary>

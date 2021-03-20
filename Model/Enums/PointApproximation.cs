@@ -1,7 +1,7 @@
 ﻿namespace uzSurfaceMapper.Model.Enums
 {
     /// <summary>
-    ///     Point approximation
+    ///     Position approximation
     /// </summary>
     public enum PointApproximation
     {

@@ -100,12 +100,15 @@ namespace uzSurfaceMapper.Core.Generators
 
         private float Progress { get; set; }
 
+        public bool forceDemo = true;
+
         [InvokeAtAwake]
         public override void InvokeAtAwake()
         {
             base.InvokeAtAwake();
 
-            if (!IS_DEMO)
+            // TODO: Comment this line when you want to see city
+            if (!IS_DEMO && !forceDemo)
 #pragma warning disable 162
                 return;
 #pragma warning restore 162
@@ -192,6 +195,7 @@ namespace uzSurfaceMapper.Core.Generators
                 StartCoroutine(AsyncReadAllFileText(s =>
                 {
                     city = s.Deserialize<City>();
+                    CityModel = city;
                     Debug.Log($"Deserialized city with {city.BuildingCount} buildings!");
 
                     isCityReady = true;

@@ -46,6 +46,13 @@ namespace uzSurfaceMapper.Core.Generators
             //set => isReady = value;
         }
 
+        public static string IsReadyLog =>
+            "{" +
+            $"NullWorkers={TextureWorkerBase.WorkersCollection.IsNullOrEmpty()}," +
+            $"AllReady={TextureWorkerBase.WorkersCollection.All(x => x.IsReady)}," +
+            $"CityReady={isCityReady}," +
+            $"RoadRady={isRoadReady}}}";
+
         /// <summary>
         ///     The current index
         /// </summary>
@@ -371,9 +378,9 @@ namespace uzSurfaceMapper.Core.Generators
         public static event Action OnGenerationFinishedEvent = delegate { };
 
 #if IS_DEMO
-        protected const bool IS_DEMO = true;
+        public const bool IS_DEMO = true;
 #else
-        protected const bool IS_DEMO = false;
+        public const bool IS_DEMO = false;
 #endif
     }
 }

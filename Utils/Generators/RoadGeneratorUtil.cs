@@ -42,7 +42,7 @@ namespace uzSurfaceMapper.Utils.Generators
         //{
         //}
 
-        public static IEnumerable<Road> CreateRoad(this IEnumerable<VEdge> points, StringBuilder builder)
+        public static IEnumerable<Road> CreateRoad(this List<PathNode> points, StringBuilder builder)
         {
             if (points.IsNullOrEmpty())
             {
@@ -67,28 +67,30 @@ namespace uzSurfaceMapper.Utils.Generators
             //Debug.Log(builder?.ToString());
         }
 
-        private static IEnumerable<List<Vector3>> GetRoads(IEnumerable<VEdge> points, StringBuilder builder)
+        private static IEnumerable<List<Vector3>> GetRoads(List<PathNode> points, StringBuilder builder)
         {
             //var model = RoadGenerator.RoadModel;
 
             foreach (var point in points)
             {
-                var leftList = new List<Vector3>();
-                var rightList = new List<Vector3>();
-                foreach (var leftNeighbor in point.Left.Neighbors)
-                {
-                    var p = new Vector2((float)leftNeighbor.X, (float)leftNeighbor.Y);
-                    leftList.Add(CityGenerator.SConv.GetRealPositionOnMap(p).GetHeightForPoint());
-                }
+                var roadNodes = new List<Vector3>();
+                //var rightList = new List<Vector3>();
+                var n = point?.Neighbors;
+                if (!n.IsNullOrEmpty())
+                    foreach (var neighbor in n)
+                    {
+                        var p = new Vector2(neighbor.X, neighbor.Z);
+                        roadNodes.Add(CityGenerator.SConv.GetRealPositionOnMap(p).GetHeightForPoint());
+                    }
 
-                foreach (var rightNeighbor in point.Right.Neighbors)
-                {
-                    var p = new Vector2((float)rightNeighbor.X, (float)rightNeighbor.Y);
-                    rightList.Add(CityGenerator.SConv.GetRealPositionOnMap(p).GetHeightForPoint());
-                }
+                //foreach (var rightNeighbor in point.Right.Neighbors)
+                //{
+                //    var p = new Vector2((float)rightNeighbor.X, (float)rightNeighbor.Y);
+                //    rightList.Add(CityGenerator.SConv.GetRealPositionOnMap(p).GetHeightForPoint());
+                //}
 
-                yield return leftList;
-                yield return rightList;
+                yield return roadNodes;
+                //yield return rightList;
             }
 
             //var queue = new Queue<VEdge>(points);
@@ -174,16 +176,16 @@ namespace uzSurfaceMapper.Utils.Generators
         //    }
         //}
 
-        internal static Point GetPoint(this int index)
-        {
-            return index.GetNode();
-        }
+        //internal static Point GetPoint(this int index)
+        //{
+        //    return index.GetNode();
+        //}
 
-        private static Point GetNode(this int index)
-        {
-            lock (RoadGenerator.RoadModel.SimplifiedRoadNodes)
-                return RoadGenerator.RoadModel.SimplifiedRoadNodes[index];
-        }
+        //private static Point GetNode(this int index)
+        //{
+        //    lock (RoadGenerator.RoadModel.SimplifiedRoadNodes)
+        //        return RoadGenerator.RoadModel.SimplifiedRoadNodes[index];
+        //}
 
         public static Road CreateIndependantRoad(this List<Vector3> points)
         {

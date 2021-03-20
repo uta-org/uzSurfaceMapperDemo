@@ -37,6 +37,7 @@ using Component = UnityEngine.Component;
 using Debug = UnityEngine.Debug;
 using Directory = MetadataExtractor.Directory;
 using Object = UnityEngine.Object;
+using PathNode = uzSurfaceMapper.Model.PathNode;
 using Random = System.Random;
 using SConvert = uzSurfaceMapper.Core.Func.SceneConversion;
 using Task = System.Threading.Tasks.Task;
@@ -863,6 +864,55 @@ namespace uzSurfaceMapper.Extensions.Demo
                 dictionary[key] = value;
         }
 
+        public static void AddOrSet<TKey, TValue>(this Dictionary<TKey, IList<TValue>> dictionary, TKey key, TValue value)
+        // where TValue : IList<TType>, ISet<TType>, ICollection<TType>, IDictionary, ICollection
+        {
+            if (!dictionary.ContainsKey(key))
+            {
+                var list = new List<TValue> { value };
+                dictionary.Add(key, list);
+            }
+            else
+                dictionary[key].Add(value);
+        }
+
+        public static void AddOrSet<TKey, TValue>(this Dictionary<TKey, List<TValue>> dictionary, TKey key, IEnumerable<TValue> value)
+        // where TValue : IList<TType>, ISet<TType>, ICollection<TType>, IDictionary, ICollection
+        {
+            if (!dictionary.ContainsKey(key))
+            {
+                var list = new List<TValue>();
+                list.AddRange(value);
+                dictionary.Add(key, list);
+            }
+            else
+                dictionary[key].AddRange(value);
+        }
+
+        public static void AddOrSet<TKey, TValue>(this Dictionary<TKey, ISet<TValue>> dictionary, TKey key, TValue value)
+        // where TValue : IList<TType>, ISet<TType>, ICollection<TType>, IDictionary, ICollection
+        {
+            if (!dictionary.ContainsKey(key))
+            {
+                var set = new HashSet<TValue> { value };
+                dictionary.Add(key, set);
+            }
+            else
+                dictionary[key].Add(value);
+        }
+
+        public static void AddOrSet<TKey, TValue>(this Dictionary<TKey, ISet<TValue>> dictionary, TKey key, IEnumerable<TValue> value)
+        // where TValue : IList<TType>, ISet<TType>, ICollection<TType>, IDictionary, ICollection
+        {
+            if (!dictionary.ContainsKey(key))
+            {
+                var set = new HashSet<TValue>(value);
+                dictionary.Add(key, set);
+            }
+            else
+                dictionary[key].AddRange(value);
+        }
+
         /// <summary>
         ///     To the concurrent dictionary.
         /// </summary>
@@ -930,6 +980,12 @@ namespace uzSurfaceMapper.Extensions.Demo
         }
 
         public static void AddRange<T>(this HashSet<T> set, IEnumerable<T> source)
+        {
+            foreach (var item in source)
+                set.Add(item);
+        }
+
+        public static void AddRange<T>(this ISet<T> set, IEnumerable<T> source)
         {
             foreach (var item in source)
                 set.Add(item);
@@ -1071,6 +1127,58 @@ namespace uzSurfaceMapper.Extensions.Demo
             }
 
             return true;
+        }
+
+        public static TReturn DrawLine<T, TReturn>(this T[] source, Point p1, Point p2, Func<int, int, TReturn> predicate, Predicate<TReturn> valid)
+        {
+            return DrawLine(source, p1.x, p1.y, p2.x, p2.y, predicate, valid);
+        }
+
+        public static TReturn DrawLine<T, TReturn>(this T[] source, int x0, int y0, int x1, int y1, Func<int, int, TReturn> predicate, Predicate<TReturn> valid)
+        {
+            int sx, sy;
+
+            int dx = Mathf.Abs(x1 - x0),
+                dy = Mathf.Abs(y1 - y0);
+
+            if (x0 < x1)
+                sx = 1;
+            else
+                sx = -1;
+            if (y0 < y1)
+                sy = 1;
+            else
+                sy = -1;
+
+            int err = dx - dy,
+                e2;
+
+            TReturn t;
+            while (true)
+            {
+                t = predicate(x0, y0);
+                if (!valid(t))
+                    return t;
+
+                if (x0 == x1 && y0 == y1)
+                    break;
+
+                e2 = 2 * err;
+
+                if (e2 > -dy)
+                {
+                    err = err - dy;
+                    x0 = x0 + sx;
+                }
+
+                if (e2 < dx)
+                {
+                    err = err + dx;
+                    y0 = y0 + sy;
+                }
+            }
+
+            return t;
         }
 
         public static void DrawLine(this Color[] colors, Point p1, Point p2, int width, int height, UEColor c)
@@ -1370,32 +1478,59 @@ namespace uzSurfaceMapper.Extensions.Demo
             }
         }
 
-        public static void DrawHollowPoint<T>(this T[] source, Point p, int mapWidth, int mapHeight, T t,
+        public static void DrawHollowPoint<T>(this T[] source, Point p, int mapWidth, int mapHeight, T t, T fill,
             int pointSize = 5, int border = 1, bool inverse = true)
         {
-            DrawHollowPoint(source, p.x, p.y, mapWidth, mapHeight, t, pointSize, border, inverse);
+            DrawHollowPoint(source, p.x, p.y, mapWidth, mapHeight, t, fill, pointSize, border, inverse);
         }
 
-        public static void DrawHollowPoint<T>(this T[] source, double x, double y, int mapWidth, int mapHeight, T t,
+        public static void DrawHollowPoint<T>(this T[] source, double x, double y, int mapWidth, int mapHeight, T t, T fill,
             int pointSize = 5, int border = 1, bool inverse = true)
         {
-            DrawHollowPoint(source, (int)x, (int)y, mapWidth, mapHeight, t, pointSize, border, inverse);
+            DrawHollowPoint(source, (int)x, (int)y, mapWidth, mapHeight, t, fill, pointSize, border, inverse);
         }
 
-        public static void DrawHollowPoint<T>(this T[] source, int x, int y, int mapWidth, int mapHeight, T t,
+        public static void DrawHollowPoint<T>(this T[] source, int px, int py, int mapWidth, int mapHeight, T t, T fill,
             int pointSize = 5, int border = 1, bool inverse = true)
         {
-            for (var _x = x - pointSize; _x < x + pointSize; ++_x)
+            for (var x = 0; x < mapWidth; ++x)
             {
-                for (var _y = y - pointSize; _y < y + pointSize; ++_y)
+                for (var y = 0; y < mapHeight; ++y)
                 {
-                    int dx = x - (_x + pointSize);
-                    int dy = y - (_y + pointSize);
-                    if (dx > border && dx < pointSize - border - 1 ||
-                        dy > border && dy < pointSize - border - 1) continue;
-                    var i = inverse ? P(_x, _y, mapWidth, mapHeight) : Pn(_x, _y, mapWidth);
-                    if (i > 0 && i < source.Length)
+                    //int dx = x - (_x + pointSize);
+                    //int dy = y - (_y + pointSize);
+                    //if (dx > border || dx < pointSize - border - 1 ||
+                    //    dy > border || dy < pointSize - border - 1) continue;
+                    var i = inverse ? P(x, y, mapWidth, mapHeight) : Pn(x, y, mapWidth);
+                    if (i < 0 || i > mapWidth * mapHeight) continue;
+                    //if (i > 0 && i < source.Length)
+                    //    source[i] = t;
+
+                    if (x < border)
+                    {
                         source[i] = t;
+                        continue;
+                    }
+
+                    if (mapWidth - x <= border)
+                    {
+                        source[i] = t;
+                        continue;
+                    }
+
+                    if (y < border)
+                    {
+                        source[i] = t;
+                        continue;
+                    }
+
+                    if (mapHeight - y - 1 < border)
+                    {
+                        source[i] = t;
+                        continue;
+                    }
+
+                    source[i] = fill;
                 }
             }
         }
@@ -1404,13 +1539,16 @@ namespace uzSurfaceMapper.Extensions.Demo
         {
             var texture = new Texture2D(size, size);
             var colors = new UEColor[size * size];
-            DrawHollowPoint(colors, 8, 8, size, size, c, size / 2, border);
+            DrawHollowPoint(colors, 0, 0, size, size, c, UEColor.clear, size / 2, border);
             texture.SetPixels(colors);
             texture.Apply();
 
-            var style = new GUIStyle
+            var style = new GUIStyle("button")
             {
-                normal = { background = texture }
+                normal = { background = texture },
+                hover = new GUIStyleState(),
+                focused = new GUIStyleState(),
+                active = new GUIStyleState()
             };
             return style;
         }
@@ -4199,10 +4337,33 @@ namespace uzSurfaceMapper.Extensions.Demo
             {
                 return isRoad
                        || color == Color.blue // This two colors are used when using flood fill algorithm
-                       || color == Color.red;
+                       || color == Color.red
+                       || color == Color.yellow;
             }
 
             return isRoad;
+        }
+
+        public static bool IsRoadNode(this Color color, HashSet<Color> comparison, bool enableFoolColors = false)
+        {
+            bool isRoad = color == GroundType.Asphalt.GetColor()
+                          || color == GroundType.Asphalt2.GetColor()
+                          || color == GroundType.Asphalt3.GetColor()
+                          || color == GroundType.Asphalt4.GetColor()
+                          || color == GroundType.Asphalt5.GetColor()
+                          || color == GroundType.Asphalt6.GetColor()
+                          || color == GroundType.Asphalt7.GetColor()
+                ;
+
+            if (enableFoolColors)
+            {
+                return isRoad
+                       || color == Color.blue // This two colors are used when using flood fill algorithm
+                       || color == Color.red
+                       || color == Color.yellow;
+            }
+
+            return isRoad || comparison.Any(c => c == color);
         }
 
         //public static Vector2 GetCenter(this VEdge node)
@@ -4277,6 +4438,176 @@ namespace uzSurfaceMapper.Extensions.Demo
                 }
                 processed.Add(site);
             }
+        }
+
+        public static IEnumerable<Tuple<Point, Point>> GenerateDelaunayAsPoint(this List<FortuneSite> points)
+        {
+            var processed = new HashSet<FortuneSite>();
+            foreach (var site in points)
+            {
+                foreach (var neighbor in site.Neighbors)
+                {
+                    if (!processed.Contains(neighbor))
+                    {
+                        yield return
+                            new Tuple<Point, Point>(
+                                new Point((int)site.X, (int)site.Y),
+                                new Point((int)neighbor.X, (int)neighbor.Y)
+                            );
+                    }
+                }
+                processed.Add(site);
+            }
+        }
+
+        public static HashSet<PathNode> GenerateDelaunayComplete(this List<FortuneSite> points, UEColor[] mapColors, bool inverse = true)
+        {
+            return GenerateDelaunayComplete(points, mapColors, out _, inverse);
+        }
+
+        public static HashSet<PathNode> GenerateDelaunayComplete(this List<FortuneSite> points, UEColor[] mapColors, out int skipped, bool inverse = true)
+        {
+            //var list = new List<Tuple<Point, Point>>();
+            //var nodes = new HashSet<PathNode>();
+            var linkedNodes = new HashSet<PathNode>();
+            skipped = 0;
+            //PathNode lastNode = null;
+            //var processed = new HashSet<FortuneSite>();
+            foreach (var site in points)
+            {
+                var pathNode = new PathNode(site);
+                if (pathNode.Neighbors == null) pathNode.Neighbors = new HashSet<PathNode>();
+                foreach (var n in site.Neighbors)
+                {
+                    var neighbor = new PathNode(n);
+                    if (!pathNode.Neighbors.Contains(neighbor))
+                    {
+                        //var neighbors = new List<FortuneSite>();
+                        //foreach (var fortuneSite in n.Neighbors)
+                        //{
+                        //}
+
+                        if (!IsFullRoadPath(mapColors, site, n, true, inverse))
+                            continue;
+
+                        pathNode.Neighbors.Add(neighbor);
+                        // colors.DrawLine(point.Position, point.ParentNode.Position, (x, y) => ((Color)colors[F.P(x, y, mapWidth, mapHeight)]).IsRoadNode(true));
+
+                        //list.Add(
+                        //    new Tuple<Point, Point>(
+                        //        new Point((int)site.X, (int)site.Y),
+                        //        new Point((int)neighbor.X, (int)neighbor.Y)
+                        //    ));
+                    }
+                    else ++skipped;
+                }
+                //nodes.Add(pathNode);
+
+                //pathNode.ParentNode = lastNode;
+                linkedNodes.Add(pathNode);
+
+                //lastNode = pathNode;
+                //processed.Add(site);
+            }
+
+            //return list;
+            return linkedNodes;
+        }
+
+        public static bool IsFullRoadPath(UEColor[] mapColors, FortuneSite site, FortuneSite neighbor, bool enableFoolColors = true, bool inverse = true)
+        {
+            return IsFullRoadPath(mapColors, (int)site.X, (int)site.Y, (int)neighbor.X, (int)neighbor.Y, enableFoolColors, inverse);
+        }
+
+        public static bool IsFullRoadPath(UEColor[] mapColors, Point p0, Point p1, bool enableFoolColors = true, bool inverse = true)
+        {
+            return IsFullRoadPath(mapColors, p0.x, p0.y, p1.x, p1.y, enableFoolColors, inverse);
+        }
+
+        public static bool IsFullRoadPath(UEColor[] mapColors, Vector2 p0, Vector2 p1, bool enableFoolColors = true, bool inverse = true)
+        {
+            return IsFullRoadPath(mapColors, (int)p0.x, (int)p0.y, (int)p1.x, (int)p1.y, enableFoolColors, inverse);
+        }
+
+        public static bool IsFullRoadPath(UEColor[] mapColors, int x0, int y0, int x1, int y1, bool enableFoolColors = true, bool inverse = true)
+        {
+            return mapColors.DrawLine(new Point(x0, y0), new Point(x1, y1),
+                (x, y) =>
+                {
+                    var i = inverse ? P(x, y, mapWidth, mapHeight) : Pn(x, y, mapWidth);
+                    return ((Color)mapColors[i]).IsRoadNode(enableFoolColors);
+                });
+        }
+
+        public static void AddRange(this List<PathNode> nodes, List<FortuneSite> sites)
+        {
+            nodes.AddRange(sites.Select(s => new PathNode(s)));
+        }
+
+        public static bool? IsInLine(Point A, Point B, Point C, float EPS = .01f)
+        {
+            return IsInLine(A, B, C, out _, EPS);
+        }
+
+        public static bool? IsInLine(Point A, Point B, Point C, out Tuple<float, float> products, float EPS = .01f)
+        {
+            /*
+                Let A, B, C be some points.
+
+                The easiest way to check they lie on the same line is to count crossproduct of vectors B-A, C-A.
+
+                If it equals zero, they lie on the same line:
+
+                // X_ab, Y_ab - coordinates of vector B-A.
+                float X_ab = B.x - A.x
+                float Y_ab = B.y - A.y
+                // X_ac, Y_ac - coordinates of vector C-A.
+                float X_ac = C.x - A.x
+                float Y_ac = C.y - A.y
+                float crossproduct = Y_ab * X_ac - X_ab * Y_ac
+                if (crossproduct < EPS) // if crossprudct == 0
+                {
+                   // on the same line.
+                } else {
+                   // not on the same line.
+                }
+                After you know that A, B, C lie on the same line it is easy to know whether B lies between A and C throw innerproduct of vectors B-A and C-A. If B lies between A and C, then (B-A) has the same direction as (C-A), and innerproduct > 0, otherwise < 0:
+
+                float innerproduct = X_ab * X_ac + Y_ab * Y_ac;
+                if (innerproduct > 0) {
+                  // B is between A and C.
+                } else {
+                  // B is not between A and C.
+                }
+             */
+
+            // X_ab, Y_ab - coordinates of vector B-A.
+            float X_ab = B.x - A.x;
+            float Y_ab = B.y - A.y;
+            // X_ac, Y_ac - coordinates of vector C-A.
+            float X_ac = C.x - A.x;
+            float Y_ac = C.y - A.y;
+            float crossproduct = Y_ab * X_ac - X_ab * Y_ac;
+            // EPS == 0 ? crossproduct == 0 :
+            if (crossproduct < EPS) // if crossprudct == 0
+            {
+                // on the same line.
+                float innerproduct = X_ab * X_ac + Y_ab * Y_ac;
+                if (innerproduct > 0)
+                {
+                    // B is between A and C.
+                    products = new Tuple<float, float>(crossproduct, innerproduct);
+                    return true;
+                }
+
+                // B is not between A and C.
+                products = new Tuple<float, float>(crossproduct, innerproduct);
+                return false;
+            }
+
+            // not on the same line.
+            products = new Tuple<float, float>(crossproduct, -1);
+            return null;
         }
 
 #if UNITY_EDITOR

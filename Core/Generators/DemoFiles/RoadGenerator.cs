@@ -36,6 +36,8 @@ namespace uzSurfaceMapper.Core.Generators
 
         private float DeserializeProgress { get; set; }
 
+        public bool forceDemo = true;
+
         [InvokeAtAwake]
         public override void InvokeAtAwake()
         {
@@ -43,7 +45,7 @@ namespace uzSurfaceMapper.Core.Generators
             if (My == null) My = this;
 
             // TODO
-            if (!IS_DEMO)
+            if (!IS_DEMO && !forceDemo)
 #pragma warning disable 162
                 return;
 #pragma warning restore 162
@@ -78,7 +80,7 @@ namespace uzSurfaceMapper.Core.Generators
                     Model = result.Deserialize<RoadModel>();
                     //RoadModel = Model;
 
-                    Debug.Log($"Deserialized roads with {Model.SimplifiedRoadNodes.Count} nodes!");
+                    //Debug.Log($"Deserialized roads with {Model.SimplifiedRoadNodes.Count} nodes!");
 
                     isRoadReady = true;
                 }));
