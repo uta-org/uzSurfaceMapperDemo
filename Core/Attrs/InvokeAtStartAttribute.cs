@@ -2,7 +2,7 @@
 
 namespace uzSurfaceMapper.Core.Attrs
 {
-    public class InvokeAtUpdateAttribute : Attribute
+    public class InvokeAtStartAttribute : Attribute
     {
     }
 }

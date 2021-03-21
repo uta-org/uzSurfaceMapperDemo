@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -10,6 +11,7 @@ namespace uzSurfaceMapper.Core
     public class Invokator : MonoBehaviour
     {
         private static List<MethodModel> UpdateMethods { get; } = new List<MethodModel>();
+        private static List<MethodModel> GUIMethods { get; } = new List<MethodModel>();
 
         private Dictionary<string, Exception> UpdateException { get; set; } = new Dictionary<string, Exception>();
         private bool HasExceptions { get; set; }
@@ -23,6 +25,21 @@ namespace uzSurfaceMapper.Core
 
             var updateMethods = GetAttributes<InvokeAtUpdateAttribute>();
             ProcessMethods(updateMethods, UpdateMethods.Add);
+
+            var guiMethods = GetAttributes<InvokeAtGUIAttribute>();
+            ProcessMethods(guiMethods, GUIMethods.Add);
+        }
+
+        private void Start()
+        {
+            var startMethods = GetAttributes<InvokeAtStartAttribute>();
+            ProcessMethods(startMethods, model =>
+            {
+                if (model.Method.ReturnType == typeof(IEnumerator))
+                    model.Instance.StartCoroutine(model.Method.Name);
+                else
+                    model.Method.Invoke(model.Instance, null);
+            });
         }
 
         private void Update()
@@ -41,6 +58,26 @@ namespace uzSurfaceMapper.Core
                     HasExceptions = true;
                     Debug.LogException(ex);
                     UpdateException.Add(updateMethod.Method.Name, ex);
+                }
+            }
+        }
+
+        private void OnGUI()
+        {
+            if (m_stopAtExceptions && HasExceptions) return;
+
+            foreach (var guiMethod in GUIMethods)
+            {
+                if (UpdateException.ContainsKey(guiMethod.Method.Name)) continue;
+                try
+                {
+                    guiMethod.Method.Invoke(guiMethod.Instance, null);
+                }
+                catch (Exception ex)
+                {
+                    HasExceptions = true;
+                    Debug.LogException(ex);
+                    UpdateException.Add(guiMethod.Method.Name, ex);
                 }
             }
         }
@@ -66,7 +103,7 @@ namespace uzSurfaceMapper.Core
                 try
                 {
                     var obj = (object)FindObjectOfType(method.DeclaringType); // Find the instantiated class
-                    methodCallback(new MethodModel(obj, method));
+                    methodCallback(new MethodModel((MonoBehaviour)obj, method));
                     //method.Invoke(obj, null);
                 }
                 catch (Exception ex)
@@ -79,7 +116,7 @@ namespace uzSurfaceMapper.Core
 
         internal class MethodModel
         {
-            public MethodModel(object _instance, MethodInfo _method)
+            public MethodModel(MonoBehaviour _instance, MethodInfo _method)
             {
                 Instance = _instance;
                 Method = _method;
@@ -89,7 +126,7 @@ namespace uzSurfaceMapper.Core
             {
             }
 
-            public object Instance { get; }
+            public MonoBehaviour Instance { get; }
             public MethodInfo Method { get; }
         }
     }
