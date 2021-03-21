@@ -58,16 +58,6 @@ namespace uzSurfaceMapper.Core.Generators
         public GameObject _terrainGenerator;
 
         /// <summary>
-        ///     The loading GIF
-        /// </summary>
-        public UniGif.GifFile loadingGif;
-
-        /// <summary>
-        ///     The character controller
-        /// </summary>
-        private CharacterController characterController; // TODO: remove...
-
-        /// <summary>
         ///     The current load progress
         /// </summary>
         private float currentLoadProgress;
@@ -77,26 +67,7 @@ namespace uzSurfaceMapper.Core.Generators
         /// </summary>
         public Func<IEnumerator> beforeCityLoaded;
 
-        /// <summary>
-        ///     Occurs when [is city loaded].
-        /// </summary>
-        public Action<bool> isCityLoaded;
-
         public static bool isCityGenerated;
-
-        /// <summary>
-        ///     Gets the city json path.
-        /// </summary>
-        /// <value>
-        ///     The city json path.
-        /// </value>
-#pragma warning disable CS0628 // Nuevo miembro protegido declarado en la clase sealed
-        protected static string CityJSONPath => GetOutputSavePath();
-#pragma warning restore CS0628 // Nuevo miembro protegido declarado en la clase sealed
-
-#pragma warning disable CS0628 // Nuevo miembro protegido declarado en la clase sealed
-        protected static string CityBINPath => GetOutputSavePath("city", "bin");
-#pragma warning restore CS0628 // Nuevo miembro protegido declarado en la clase sealed
 
         private float Progress { get; set; }
 
@@ -120,38 +91,6 @@ namespace uzSurfaceMapper.Core.Generators
             if (SConv == null)
                 SConv = new SceneConversion(realScaleZoom, singlePlaneSize, conversionFactor, new Vector2(mapWidth, mapHeight));
 
-            isCityLoaded = buildCanBeInstanciated =>
-            {
-                //Debug.Log("City file loaded! Can Build?: " + buildCanBeInstanciated);
-
-                if (!buildCanBeInstanciated)
-                {
-                    // DO THE MAIN GENETATION: BUY THE ASSET TO SEE THIS CODE.
-                    //ThreadedDebug.Log("Starting generation!");
-
-                    //// Disable player
-                    //TogglePlayer(false);
-
-                    //// Disable camera
-                    //ToggleCamera(false);
-
-                    //// Start to do all generation
-                    //this.StartCoroutineAsync(DoAllGeneration(saveTexture));
-                }
-                else
-                {
-                    if (forceTerrainGen && !continueWhenFinish)
-                        return;
-
-                    //ThreadedDebug.Log("Starting building city!");  TODO: ThreadedDebug is incompatible
-                    Debug.Log("Starting building city!");
-
-                    //if (testOneBuild)
-                    //    TestOneBuild();
-                    StartCoroutine(GenerateCity());
-                }
-            };
-
             string path;
 
 #if !UNITY_WEBGL
@@ -162,44 +101,30 @@ namespace uzSurfaceMapper.Core.Generators
 
             DoesCityFileExists = File.Exists(path);
 
-            characterController = FindObjectOfType<CharacterController>();
-
             if (DoesCityFileExists)
             {
                 //ThreadedDebug.Log("Starting loading city from file!");
                 Debug.Log("Starting loading city from file!");
 
                 //if (playerObject != null)
-                var holdPosition = FirstPersonController.Pos;
+                HoldPosition = FirstPersonController.Pos;
                 //holdPosition.y = 100;
                 //characterController.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionY;
 
-                OnGenerationFinishedEvent += () =>
-                {
-                    //Debug.Log($"Set player position on generation finished! {FirstPersonController.Pos} -> {holdPosition}");
-                    //FirstPersonController.Pos = holdPosition;
-                    //FirstPersonController.Positions.Enqueue(holdPosition); // Use late update
-
-                    Debug.Log("Unfreezing player!");
-                    characterController.enabled = false;
-                    FirstPersonController.Pos = holdPosition;
-                    PedController.Instance.FindGround();
-                    characterController.enabled = true;
-
-                    //characterController.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-                };
+                // TODO: Unfreeze player
+                //OnGenerationFinishedEvent += UnfreezePlayer;
 
                 // playerObject.transform.position;
 
 #if !UNITY_WEBGL
-                StartCoroutine(AsyncReadAllFileText(s =>
-                {
-                    city = s.Deserialize<City>();
-                    CityModel = city;
-                    Debug.Log($"Deserialized city with {city.BuildingCount} buildings!");
+                //StartCoroutine(AsyncReadAllFileText(s =>
+                //{
+                //    city = s.Deserialize<City>();
+                //    CityModel = city;
+                //    Debug.Log($"Deserialized city with {city.BuildingCount} buildings!");
 
-                    isCityReady = true;
-                }));
+                //    isCityReady = true;
+                //}));
 #else
                 var url = WebRequestUtils.MakeInitialUrl(path);
                 Debug.Log($"City: '{path}' -> '{url}'");
@@ -232,7 +157,7 @@ namespace uzSurfaceMapper.Core.Generators
                 if (characterController != null)
                     characterController.enabled = false;
 
-                isCityLoaded(false);
+                IsCityLoaded(false);
             }
 
 #if UNITY_WEBGL
@@ -247,6 +172,40 @@ namespace uzSurfaceMapper.Core.Generators
             }
 #endif
         }
+
+#if IS_DEMO
+        public void IsCityLoaded(bool buildCanBeInstanciated)
+        {
+            //Debug.Log("City file loaded! Can Build?: " + buildCanBeInstanciated);
+
+            if (!buildCanBeInstanciated)
+            {
+                // DO THE MAIN GENERATION: BUY THE ASSET TO SEE THIS CODE.
+                //ThreadedDebug.Log("Starting generation!");
+
+                //// Disable player
+                //TogglePlayer(false);
+
+                //// Disable camera
+                //ToggleCamera(false);
+
+                //// Start to do all generation
+                //this.StartCoroutineAsync(DoAllGeneration(saveTexture));
+            }
+            else
+            {
+                if (forceTerrainGen && !continueWhenFinish) return;
+
+                //ThreadedDebug.Log("Starting building city!");  TODO: ThreadedDebug is incompatible
+                Debug.Log("Starting building city!");
+
+                //if (testOneBuild)
+                //    TestOneBuild();
+                StartCoroutine(GenerateCity());
+            }
+        }
+
+#endif
 
 #if UNITY_WEBGL
 
@@ -268,7 +227,7 @@ namespace uzSurfaceMapper.Core.Generators
             Debug.Log($"Serializing '{CityBINPath}'!");
 
             // ReSharper disable once InvokeAsExtensionMethod
-            File.WriteAllBytes(CityBINPath, F.Serialize(city, null));
+            File.WriteAllBytes(CityBINPath, F.Serialize(CityModel, null));
         }
 
         [InvokeAtUpdate]
@@ -281,30 +240,30 @@ namespace uzSurfaceMapper.Core.Generators
             //    FirstPersonController.Positions.Enqueue(holdPosition);
         }
 
-        /// <summary>
-        ///     Asynchronous read all file text.
-        /// </summary>
-        /// <param name="fin">The fin.</param>
-        /// <returns></returns>
-        private IEnumerator AsyncReadAllFileText(Action<string> fin)
-        {
-            if (beforeCityLoaded != null)
-                yield return this.StartCoroutineAsync(beforeCityLoaded.Invoke());
+        ///// <summary>
+        /////     Asynchronous read all file text.
+        ///// </summary>
+        ///// <param name="fin">The fin.</param>
+        ///// <returns></returns>
+        //private IEnumerator AsyncReadAllFileText(Action<string> fin)
+        //{
+        //    if (beforeCityLoaded != null)
+        //        yield return this.StartCoroutineAsync(beforeCityLoaded.Invoke());
 
-            bool isMonoSingleton = GetType().DeclaringType?.FullName?.Contains("MonoSingleton") == true;
-            Debug.Log($"Loading gif is null?: {loadingGif == null}; Initialized?: {loadingGif?.IsInitialized}; IsMonoSingleton?: {isMonoSingleton}");
+        //    bool isMonoSingleton = GetType().DeclaringType?.FullName?.Contains("MonoSingleton") == true;
+        //    Debug.Log($"Loading gif is null?: {loadingGif == null}; Initialized?: {loadingGif?.IsInitialized}; IsMonoSingleton?: {isMonoSingleton}");
 
-            if (loadingGif != null && loadingGif.IsInitialized && isMonoSingleton)
-                yield return new WaitUntil(() => loadingGif.IsReady);
+        //    if (loadingGif != null && loadingGif.IsInitialized && isMonoSingleton)
+        //        yield return new WaitUntil(() => loadingGif.IsReady);
 
-            CityBenchmarkData.StartBenchmark(CityBenchmark.LoadingCity);
+        //    CityBenchmarkData.StartBenchmark(CityBenchmark.LoadingCity);
 
-            yield return F.AsyncReadFileWithWWW(CityJSONPath, f => currentLoadProgress = f, fin);
+        //    yield return F.AsyncReadFileWithWWW(CityJSONPath, f => currentLoadProgress = f, fin);
 
-            CityBenchmarkData.StopBenchmark(CityBenchmark.LoadingCity);
+        //    CityBenchmarkData.StopBenchmark(CityBenchmark.LoadingCity);
 
-            isCityLoaded(true);
-        }
+        //    isCityLoaded(true);
+        //}
 
         internal IEnumerator GenerateCity()
         {

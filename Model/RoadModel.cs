@@ -38,7 +38,7 @@ namespace uzSurfaceMapper.Model
         /// <value>
         ///   <c>true</c> if [keep inner optimization]; otherwise, <c>false</c>.
         /// </value>
-        public bool KeepInnerOptimization { get; set; }
+        [JsonIgnore] public bool KeepInnerOptimization { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether [keep outer optimization] (this value can be changed manually in the JSON file to force optimization).
@@ -46,7 +46,7 @@ namespace uzSurfaceMapper.Model
         /// <value>
         ///   <c>true</c> if [keep outer optimization]; otherwise, <c>false</c>.
         /// </value>
-        public bool KeepOuterOptimization { get; set; }
+        [JsonIgnore] public bool KeepOuterOptimization { get; set; }
 
         [JsonIgnore]
         public bool OuterOptimized
@@ -76,8 +76,8 @@ namespace uzSurfaceMapper.Model
             get
             {
                 // Same here
-                if (!KeepInnerOptimization)
-                    return false;
+                //if (!KeepInnerOptimization)
+                //    return false;
 
                 try
                 {

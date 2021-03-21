@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using RoadArchitect;
@@ -52,7 +53,7 @@ namespace uzSurfaceMapper.Utils.Generators
 
             //var dict = points.Select(p => new {Index = p.GetKey(), Point = p}).ToDictionary(x => x.Index, x => x.Point);
             //var builder = new StringBuilder();
-            var roads = GetRoads(points, builder);
+            var roads = GetRoads(points, builder).ToList();
             foreach (var list in roads)
             {
                 if (list.IsNullOrEmpty()) continue;

@@ -244,13 +244,15 @@ namespace uzSurfaceMapper.Model
             if (chunk.RoadPoints == null)
             {
                 chunk.RoadPoints = SetChunkRoadPoints(rectOnMap);
-                if (chunk.RoadPoints?.Count > 0)
-                {
-                    var nodes = chunk.RoadPoints; // .Select(n => RoadGenerator.RoadModel.PathNodes.Find(n)).ToList();
-                    var neighborCount = nodes?.Sum(n => n.Neighbors?.Count ?? 0);
-                    Debug.Log(
-                        $"Set: {chunk.RoadPoints.Count} road nodes. (Loaded: {RoadGenerator.RoadModel.PathNodes?.Count} | Neighbors Count: {neighborCount}) || Rect: {rectOnMap}");
-                }
+                // TODO
+                //if (chunk.RoadPoints?.Count > 0)
+                //{
+                //    var nodes = chunk.RoadPoints; // .Select(n => RoadGenerator.RoadModel.PathNodes.Find(n)).ToList();
+                //    var neighborCount = nodes?.Sum(n => n.Neighbors?.Count ?? 0);
+
+                //    Debug.Log(
+                //        $"Set: {chunk.RoadPoints.Count} road nodes. (Loaded: {RoadGenerator.RoadModel.PathNodes?.Count} | Neighbors Count: {neighborCount}) || Rect: {rectOnMap}");
+                //}
             }
             //Debug.Log($"Count of buildings at chunk ({rect.x}, {rect.y}): {_c.listOfBuildings.Count}");
 

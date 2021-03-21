@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.Core;
+using UnityEngine.Extensions;
+using UnityEngine.UI;
+using UnityGif;
 using UnityStandardAssets.Characters.FirstPerson;
 using uzLib.Lite.ExternalCode.Extensions;
 using uzSurfaceMapper.Core.Attrs;
@@ -13,8 +17,11 @@ using uzSurfaceMapper.Core.Attrs.CodeAnalysis;
 using uzSurfaceMapper.Core.Workers;
 using uzSurfaceMapper.Extensions;
 using uzSurfaceMapper.Model;
+using uzSurfaceMapper.Utils;
 using uzSurfaceMapper.Utils.Benchmarks.Impl;
+using uzSurfaceMapper.Utils.Threading;
 using Color = UnityEngine.Color;
+using F = uzSurfaceMapper.Extensions.Demo.F;
 
 // ReSharper disable HeuristicUnreachableCode
 
@@ -24,6 +31,14 @@ namespace uzSurfaceMapper.Core.Generators
 {
     public abstract partial class MapGenerator : MonoSingleton<MapGenerator>, IInvoke
     {
+        public enum ModelType
+        {
+            City,
+            Road,
+            Terrain,
+            Water
+        }
+
         protected static readonly Thread mainThread = Thread.CurrentThread;
 
         #region "Constant fields"
@@ -122,22 +137,22 @@ namespace uzSurfaceMapper.Core.Generators
         [HideInInspector] [SerializeField] public GameObject playerObject;
 
         /// <summary>
-        ///     The city
-        /// </summary>
-        [HideInInspector] public City city;
-
-        /// <summary>
         ///     Continue creating builds when finish map texture iteration
         /// </summary>
         [HideInInspector] [SerializeField] public bool continueWhenFinish;
 
-        [HideInInspector] [SerializeField] public bool loadDataOnMemoryAtStart = true;
+        //[HideInInspector] [SerializeField] public bool loadDataOnMemoryAtStart = true;
 
         public static Texture2D MapTexture { get; private set; }
 
         public static City CityModel { get; internal set; }
 
         public static bool DoBenchmarks { get; set; } = true;
+
+        /// <summary>
+        ///     The loading GIF
+        /// </summary>
+        protected UniGif.GifFile loadingGif;
 
         /// <summary>
         ///     The map colors
@@ -147,6 +162,22 @@ namespace uzSurfaceMapper.Core.Generators
         public static string RoadJSONPath => GetOutputSavePath("road");
         public static string RoadBINPath => GetOutputSavePath("road", "bin");
 
+        protected static string CityJSONPath => GetOutputSavePath();
+        protected static string CityBINPath => GetOutputSavePath("city", "bin");
+
+        public static List<Tuple<ModelType, string>> Models => new List<Tuple<ModelType, string>>
+        {
+            new Tuple<ModelType, string>(ModelType.City, CityJSONPath),
+            new Tuple<ModelType, string>(ModelType.Road, RoadJSONPath)
+        };
+
+        public static bool UsePercentage { get; set; }
+        public static float Percentage { get; set; }
+        public static int CurrentStep { get; set; }
+        public static string Status { get; set; }
+        public static string Step { get; set; }
+        public static int TotalSteps { get; set; }
+
         protected static Rect CityProgressRect => new Rect(Screen.width / 2 - 300, Screen.height - 30, 600, 25);
         protected static Rect RoadProgressRect => new Rect(Screen.width / 2 - 300, Screen.height - 60, 600, 25);
 
@@ -155,9 +186,11 @@ namespace uzSurfaceMapper.Core.Generators
         private static bool IsReadyFlagged { get; set; }
 
         /// <summary>
-        ///     The hold position
+        ///     The character controller
         /// </summary>
-        //protected Vector3 holdPosition;
+        protected CharacterController characterController; // TODO: remove...
+
+        protected static Vector3 HoldPosition { get; set; }
 
         /// <summary>
         ///     Gets a value indicating whether this instance is debugging.
@@ -205,6 +238,10 @@ namespace uzSurfaceMapper.Core.Generators
 
             AlreadyExecuted = true;
 
+            //characterController = FindObjectOfType<CharacterController>();
+
+            AsyncLoadModels();
+
             if (DoBenchmarks)
                 TextureBenchmarkData.StartBenchmark(TextureBenchmark.ResourcesLoad);
 
@@ -220,6 +257,60 @@ namespace uzSurfaceMapper.Core.Generators
 
             if (DoBenchmarks)
                 TextureBenchmarkData.StopBenchmark(TextureBenchmark.ResourcesLoad);
+        }
+
+        [InvokeAtStart]
+        public virtual IEnumerator InvokeAtStart()
+        {
+            bool isMonoSingleton = GetType().DeclaringType?.FullName?.Contains("MonoSingleton") == true;
+            Debug.Log($"Loading gif is null?: {loadingGif == null}; Initialized?: {loadingGif?.IsInitialized}; IsMonoSingleton?: {isMonoSingleton}");
+
+            if (loadingGif != null && loadingGif.IsInitialized && isMonoSingleton)
+                yield return new WaitUntil(() => loadingGif.IsReady);
+        }
+
+        [InvokeAtUpdate]
+        public virtual void InvokeAtUpdate()
+        {
+            if (IsReady && !IsReadyFlagged)
+            {
+                OnGenerationFinishedEvent();
+                IsReadyFlagged = true;
+            }
+
+            //if (Input.GetKeyDown(KeyCode.H))
+            //    FirstPersonController.Pos = holdPosition;
+        }
+
+        [InvokeAtGUI]
+        public virtual void InvokeAtGUI()
+        {
+            loadingGif?.Draw(new Rect(Screen.width / 2 - 16, Screen.height - (35 + 32), 32, 32));
+
+            if (!UsePercentage && TotalSteps > 0 || UsePercentage && Percentage > 0)
+                UIUtils.DrawBarWithLabel(new Rect(Screen.width / 2 - 400, Screen.height - 30, 800, 25),
+                    (string.IsNullOrEmpty(Status) ? "" : $"[{Status}] ") +
+                    $"{(string.IsNullOrEmpty(Step) ? "" : $"{Step} ")}({CurrentStep} out of {TotalSteps})",
+                    UsePercentage ? Percentage : (float)CurrentStep / TotalSteps);
+            //GUIUtils.DrawBar(new Rect(Screen.width / 2 - 150, Screen.height - 30, 300, 25), currentLoadProgress,
+            //    Color.white.AsUnityColor(), Color.black.AsUnityColor(), 3);
+        }
+
+        public void UnfreezePlayer()
+        {
+            UnfreezePlayer(HoldPosition);
+        }
+
+        private void UnfreezePlayer(Vector3 holdPosition)
+        {
+            if (characterController == null)
+                characterController = FindObjectOfType<CharacterController>();
+
+            Debug.Log("Unfreezing player!");
+            characterController.enabled = false;
+            FirstPersonController.Pos = holdPosition;
+            PedController.Instance.FindGround();
+            characterController.enabled = true;
         }
 
         public static void LoadColors()
@@ -286,17 +377,79 @@ namespace uzSurfaceMapper.Core.Generators
             //}
         }
 
-        [InvokeAtUpdate]
-        public virtual void InvokeAtUpdate()
+        private void AsyncLoadModels()
         {
-            if (IsReady && !IsReadyFlagged)
+            AsyncLoadModels(null);
+        }
+
+        private void AsyncLoadModels(Func<ModelType, IEnumerator> beforeLoad)
+        {
+            IEnumerator EndLoad(ModelType modelType, string result)
             {
-                OnGenerationFinishedEvent();
-                IsReadyFlagged = true;
+                switch (modelType)
+                {
+                    case ModelType.City:
+                        CityModel = result.Deserialize<City>();
+                        Debug.Log($"Deserialized city with {CityModel.BuildingCount} buildings!");
+                        isCityReady = true;
+                        break;
+
+                    case ModelType.Road:
+                        RoadGenerator.RoadModel = result.Deserialize<RoadModel>();
+                        Debug.Log($"Deserialized road model: {RoadGenerator.RoadModel}");
+                        isCityReady = true;
+
+                        yield return Ninja.JumpToUnity;
+                        cityGenerator.IsCityLoaded(true);
+                        break;
+                }
             }
 
-            //if (Input.GetKeyDown(KeyCode.H))
-            //    FirstPersonController.Pos = holdPosition;
+            StartCoroutine(AsyncLoadModels(beforeLoad, EndLoad));
+        }
+
+        private IEnumerator AsyncLoadModels(Func<ModelType, IEnumerator> beforeLoad, Func<ModelType, string, IEnumerator> endLoad)
+        {
+            foreach (var model in Models)
+            {
+                Step = $"Loading {model.Item1} model";
+
+                if (beforeLoad != null)
+                    yield return this.StartCoroutineAsync(beforeLoad.Invoke(model.Item1));
+
+                string result = null;
+                //var bg = AsyncHelper.RunAsync(loadCallback, () => model.Item1, s =>
+                //{
+                //    result = s;
+                //});
+                //yield return new WaitWhile(() => bg.IsBusy);
+
+                UsePercentage = true;
+                yield return F.AsyncReadFileWithWWW<string>(model.Item2, f => Percentage = f, s =>
+                {
+                    result = s;
+                });
+                UsePercentage = false;
+
+                //yield return this.StartCoroutineAsync(loadCallback.Invoke(model.Item1));
+
+                if (endLoad != null)
+                    yield return this.StartCoroutineAsync(endLoad.Invoke(model.Item1, result));
+            }
+
+            Percentage = 0;
+            TotalSteps = 0;
+
+            //if (beforeCityLoaded != null)
+            //    yield return this.StartCoroutineAsync(beforeCityLoaded.Invoke());
+
+            //CityBenchmarkData.StartBenchmark(CityBenchmark.LoadingCity);
+
+            //yield return F.AsyncReadFileWithWWW(CityJSONPath, f => currentLoadProgress = f, fin);
+
+            //CityBenchmarkData.StopBenchmark(CityBenchmark.LoadingCity);
+
+            //isCityLoaded(true);
         }
 
         /// <summary>

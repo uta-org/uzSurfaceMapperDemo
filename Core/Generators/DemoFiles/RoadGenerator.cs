@@ -25,7 +25,12 @@ namespace uzSurfaceMapper.Core.Generators
 {
     public sealed partial class RoadGenerator : MapGenerator, IWorkerShareable
     {
-        public static RoadModel RoadModel => My.Model;
+        public static RoadModel RoadModel
+        {
+            get => My.Model;
+            internal set => My.Model = value;
+        }
+
         private static RoadGenerator My;
 
         public RoadModel Model { get; private set; }
@@ -57,17 +62,17 @@ namespace uzSurfaceMapper.Core.Generators
             path = RoadBINPath;
 #endif
 
-            bool exists = File.Exists(path);
+            //bool exists = File.Exists(path);
 
-            Debug.Log(exists
-                ? $"'{path}' exists. Deserializing!"
-                : $"'{path}' doesn't exists. Instantiating!");
+            //Debug.Log(exists
+            //    ? $"'{path}' exists. Deserializing!"
+            //    : $"'{path}' doesn't exists. Instantiating!");
 
             //Model = exists
             //    ? JsonConvert.DeserializeObject<RoadModel>(File.ReadAllText(RoadJSONPath))
             //    : new RoadModel();
 
-            if (!exists)
+            if (!File.Exists(path))
             {
                 Model = new RoadModel();
                 //RoadModel = Model;

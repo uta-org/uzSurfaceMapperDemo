@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Castle.Core.Internal;
-using Newtonsoft.Json;
 using UnityEngine;
 using VoronoiLib.Structures;
 
@@ -116,6 +115,38 @@ namespace uzSurfaceMapper.Model
                 Neighbors.Add(grid[X, Z - 1]);
             }
             catch { }
+        }
+
+        //public static bool operator ==(PathNode p1, PathNode p2)
+        //{
+        //    //if(p1?.Equals(null) && p2?.Equals(null))
+        //    return p1.Position == p2.Position;
+
+        //    //try
+        //    //{
+        //    //    return p1.Position == p2.Position;
+        //    //}
+        //    //catch
+        //    //{
+        //    //    return false;
+        //    //}
+        //}
+
+        //public static bool operator !=(PathNode p1, PathNode p2)
+        //{
+        //    try
+        //    {
+        //        return p1.Position != p2.Position;
+        //    }
+        //    catch
+        //    {
+        //        return false;
+        //    }
+        //}
+
+        public override string ToString()
+        {
+            return $"PathNode{{Position={Position},Neighbors={Neighbors.Count}}}";
         }
     }
 }
