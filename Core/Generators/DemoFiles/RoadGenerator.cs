@@ -145,6 +145,21 @@ namespace uzSurfaceMapper.Core.Generators
 
 #endif
 
+        public override void InvokeAtStart()
+        {
+            //base.InvokeAtStart();
+        }
+
+        public override void InvokeAtUpdate()
+        {
+            //base.InvokeAtUpdate();
+        }
+
+        public override void InvokeAtGUI()
+        {
+            //base.InvokeAtGUI();
+        }
+
         public void RegisterSharedWorker(IWorkerShareable worker)
         {
             TextureWorkerBase.ShareableWorkers.Add(worker);

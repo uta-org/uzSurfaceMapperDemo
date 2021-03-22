@@ -27,7 +27,7 @@ namespace uzSurfaceMapper.Model
 
         [JsonIgnore] public Vector2 Position => r.position + Vector2.one * SceneConversion.Instance.SinglePlaneSize / 2;
 
-        [JsonIgnore] public List<PathNode> RoadPoints { get; internal set; }
+        [JsonIgnore] public List<PathNode> RoadNodes { get; internal set; }
 
         /// <summary>
         ///     Prevents a default instance of the <see cref="Chunk" /> class from being created.

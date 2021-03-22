@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using uzSurfaceMapper.Core.Generators;
 using uzSurfaceMapper.Extensions;
 using Newtonsoft.Json;
@@ -175,6 +176,18 @@ namespace uzSurfaceMapper.Model
         /// <returns></returns>
         public static Chunk GetChunk(int x, int y, float px, float py, out string debugStr)
         {
+            return GetChunk(x, y, px, py, out debugStr, out _);
+        }
+
+        /// <summary>
+        ///     Gets the chunk.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="debugStr">The debug string.</param>
+        /// <returns></returns>
+        public static Chunk GetChunk(int x, int y, float px, float py, out string debugStr, out int? neighborCount)
+        {
 #if UNITY_EDITOR
             //if (Instance.chunks.Count > 0 && !new Rect(Instance.chunks.Min(c => c.xMin), Instance.chunks.Min(c => c.yMin), Instance.chunks.Max(c => c.xMax), Instance.chunks.Max(c => c.yMax)).Contains(new Vector2(x, y)))
             //    throw new Exception($"The bounding box of the plane doesn't contains ({x}, {y})"); // You have reached the limit...
@@ -186,7 +199,8 @@ namespace uzSurfaceMapper.Model
                 Debug.LogWarning("Something went wrong went loading city.");
 
             var vector = new Vector2(px, py);
-            debugStr = $"Getting chunk from {city.chunks?.Count} loaded chunks at {vector} ({x}, {y})!\n\nSConv Instance\n{new string('=', 10)}\n{CityGenerator.SConv}\n\n";
+            var sb = new StringBuilder(
+                $"Getting chunk from {city?.chunks?.Count} loaded chunks at {vector} ({x}, {y})!\n\nSConv Instance\n{new string('=', 10)}\n{CityGenerator.SConv}\n\n");
 
             //if (!debugOnceFlag)
             //{
@@ -201,17 +215,21 @@ namespace uzSurfaceMapper.Model
                         int _x = x + i,
                             _y = y + j;
 
-                        AddChunk(_x, _y);
+                        AddChunk(_x, _y, out neighborCount);
+                        sb.AppendLine($"({_x}, {_y}) [Adding chunk] Neighbor count = {neighborCount}");
                     }
 
+            neighborCount = null;
             var chunk = city.chunks?
                 .FirstOrDefault(c => c.r
-                    .Contains(vector)) ?? AddChunk(px, py); // , c.xMax <= 0 || c.yMax <= 0
+                    .Contains(vector)) ?? AddChunk(px, py, out neighborCount); // , c.xMax <= 0 || c.yMax <= 0
+            sb.AppendLine($"[Getting chunk] Neighbor count = {neighborCount}");
 
+            debugStr = sb.ToString();
             return chunk;
         }
 
-        private static Chunk AddChunk(float px, float py)
+        private static Chunk AddChunk(float px, float py, out int? neighborCount)
         {
             //var scaledSPZ = GetScaledVector(x, y);
 
@@ -241,24 +259,28 @@ namespace uzSurfaceMapper.Model
                 //Debug.Log($"Set: {set.Count} buildings. (Loaded: {city.buildings.Count}) || Rect: {rectOnMap}");
             }
 
-            if (chunk.RoadPoints == null)
+            neighborCount = 0;
+            if (chunk.RoadNodes == null)
             {
-                chunk.RoadPoints = SetChunkRoadPoints(rectOnMap);
-                // TODO
-                //if (chunk.RoadPoints?.Count > 0)
-                //{
-                //    var nodes = chunk.RoadPoints; // .Select(n => RoadGenerator.RoadModel.PathNodes.Find(n)).ToList();
-                //    var neighborCount = nodes?.Sum(n => n.Neighbors?.Count ?? 0);
+                chunk.RoadNodes = SetChunkRoadNodes(rectOnMap);
+                if (chunk.RoadNodes?.Count > 0)
+                {
+                    var nodes = chunk.RoadNodes; // .Select(n => RoadGenerator.RoadModel.PathNodes.Find(n)).ToList();
+                    neighborCount = nodes?.Sum(n => n.Neighbors?.Count ?? 0);
 
-                //    Debug.Log(
-                //        $"Set: {chunk.RoadPoints.Count} road nodes. (Loaded: {RoadGenerator.RoadModel.PathNodes?.Count} | Neighbors Count: {neighborCount}) || Rect: {rectOnMap}");
-                //}
+                    //Debug.Log(
+                    //    $"Set: {chunk.RoadNodes.Count} road nodes. (Loaded: {RoadGenerator.RoadModel.PathNodes?.Count} | Neighbors Count: {neighborCount}) || Rect: {rectOnMap}");
+                }
             }
             //Debug.Log($"Count of buildings at chunk ({rect.x}, {rect.y}): {_c.listOfBuildings.Count}");
 
             // We add the chunk
             if (MapGenerator.CityModel.chunks == null) MapGenerator.CityModel.chunks = new HashSet<Chunk>();
             MapGenerator.CityModel.chunks.Add(chunk);
+
+            city.chunks.Add(chunk);
+            // if (neighborCount.GetValue(0) < 0)
+            //Debug.Log(neighborCount);
 
             return chunk;
         }
@@ -269,7 +291,7 @@ namespace uzSurfaceMapper.Model
                 .Select(b => b.index));
         }
 
-        private static List<PathNode> SetChunkRoadPoints(Rect rect)
+        private static List<PathNode> SetChunkRoadNodes(Rect rect)
         {
             //var roadModel = MapGenerator.GetInstance<RoadGenerator>()?.Model;
             var roadModel = RoadGenerator.RoadModel;

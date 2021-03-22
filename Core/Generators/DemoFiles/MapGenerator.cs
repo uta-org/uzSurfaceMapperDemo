@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Core;
 using UnityEngine.Extensions;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 using UnityGif;
 using UnityStandardAssets.Characters.FirstPerson;
@@ -21,6 +24,7 @@ using uzSurfaceMapper.Utils;
 using uzSurfaceMapper.Utils.Benchmarks.Impl;
 using uzSurfaceMapper.Utils.Threading;
 using Color = UnityEngine.Color;
+using Debug = UnityEngine.Debug;
 using F = uzSurfaceMapper.Extensions.Demo.F;
 
 // ReSharper disable HeuristicUnreachableCode
@@ -252,6 +256,7 @@ namespace uzSurfaceMapper.Core.Generators
             if (!debugging && (MapController.Instance.showMinimap || forceTerrainGen))
             {
                 // TODO: Implement async
+                //this.StartCoroutineAsync(LoadColors());
                 LoadColors();
             }
 
@@ -259,8 +264,12 @@ namespace uzSurfaceMapper.Core.Generators
                 TextureBenchmarkData.StopBenchmark(TextureBenchmark.ResourcesLoad);
         }
 
+        public virtual void InvokeAtStart()
+        {
+        }
+
         [InvokeAtStart]
-        public virtual IEnumerator InvokeAtStart()
+        public IEnumerator InvokeAtStartAsEnumerator()
         {
             bool isMonoSingleton = GetType().DeclaringType?.FullName?.Contains("MonoSingleton") == true;
             Debug.Log($"Loading gif is null?: {loadingGif == null}; Initialized?: {loadingGif?.IsInitialized}; IsMonoSingleton?: {isMonoSingleton}");
@@ -285,6 +294,8 @@ namespace uzSurfaceMapper.Core.Generators
         [InvokeAtGUI]
         public virtual void InvokeAtGUI()
         {
+            //Debug.Log("drawing");
+
             loadingGif?.Draw(new Rect(Screen.width / 2 - 16, Screen.height - (35 + 32), 32, 32));
 
             if (!UsePercentage && TotalSteps > 0 || UsePercentage && Percentage > 0)
@@ -309,25 +320,62 @@ namespace uzSurfaceMapper.Core.Generators
             Debug.Log("Unfreezing player!");
             characterController.enabled = false;
             FirstPersonController.Pos = holdPosition;
+            var p = characterController.transform.position;
+            characterController.transform.position = new Vector3(p.x, 100, p.y);
             PedController.Instance.FindGround();
             characterController.enabled = true;
         }
 
         public static void LoadColors()
         {
+            //yield return Ninja.JumpToUnity;
+
             Debug.Log("Loading and creating map of colors...");
+            var sw = Stopwatch.StartNew();
 
             MapTexture = Instantiate(Resources.Load<Texture2D>(resourcePathGetter));
+
+            /*
+            var coroutine = F.AsyncReadFileWithWWW<Texture2D>(resourcePathGetter, tex => MapTexture = tex);
+            while (coroutine.MoveNext())
+            {
+                yield return null;
+            }
+            yield return new WaitUntil(() => MapTexture != null);
+            */
 
             mapWidth = MapTexture.width;
             mapHeight = MapTexture.height;
 
+            //Debug.Break();
+
+            //Color[] colors = null;
+
+            //AsyncGPUReadback.Request(MapTexture, 0, request =>
+            //{
+            //    var array = request.GetData<Color>();
+            //    var colors = new Color[array.Length];
+            //    Func<Tuple<NativeArray<Color>, Color[]>, Color[]> getArray = tuple =>
+            //    {
+            //        var nativeArray = tuple.Item1;
+            //        var arr = tuple.Item2;
+            //        nativeArray.CopyTo(arr);
+            //        return arr;
+            //    };
+            //    AsyncHelper.RunAsync(getArray, () => new Tuple<NativeArray<Color>, Color[]>(array, colors), c => mapColors = c);
+            //});
+
+            //yield return new WaitUntil(() => mapColors != null);
+
             // TODO: Implement async read
             mapColors = MapTexture.GetPixels();
 
+            //Debug.Break();
+
             TextureWorkerBase.SetReference(mapColors);
 
-            Debug.Log("Loaded colors!");
+            sw.Stop();
+            Debug.Log($"Loaded colors in {sw.ElapsedMilliseconds} ms!");
 
             //AsyncHelper.RunAsync(
             //    () =>
@@ -400,7 +448,7 @@ namespace uzSurfaceMapper.Core.Generators
                         isCityReady = true;
 
                         yield return Ninja.JumpToUnity;
-                        cityGenerator.IsCityLoaded(true);
+                        cityGenerator?.IsCityLoaded(true);
                         break;
                 }
             }

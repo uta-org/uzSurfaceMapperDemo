@@ -220,6 +220,27 @@ namespace uzSurfaceMapper.Core.Generators
 
 #endif
 
+        public override void InvokeAtStart()
+        {
+            //base.InvokeAtStart();
+        }
+
+        //[InvokeAtUpdate]
+        public override void InvokeAtUpdate()
+        {
+            //base.InvokeAtUpdate();
+
+            //if (DoesCityFileExists && !IsReady && characterController != null)
+            //if (DoesCityFileExists && !isCityGenerated && characterController != null)
+            //    FirstPersonController.Positions.Enqueue(holdPosition);
+        }
+
+        //[InvokeAtGUI]
+        public override void InvokeAtGUI()
+        {
+            //base.InvokeAtGUI();
+        }
+
         protected override IEnumerator SerializeBin()
         {
             Debug.Log($"Waiting city to be deserialized in order to serialize to '{CityBINPath}'...");
@@ -228,16 +249,6 @@ namespace uzSurfaceMapper.Core.Generators
 
             // ReSharper disable once InvokeAsExtensionMethod
             File.WriteAllBytes(CityBINPath, F.Serialize(CityModel, null));
-        }
-
-        [InvokeAtUpdate]
-        public override void InvokeAtUpdate()
-        {
-            base.InvokeAtUpdate();
-
-            //if (DoesCityFileExists && !IsReady && characterController != null)
-            //if (DoesCityFileExists && !isCityGenerated && characterController != null)
-            //    FirstPersonController.Positions.Enqueue(holdPosition);
         }
 
         ///// <summary>
