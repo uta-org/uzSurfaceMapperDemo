@@ -1,8 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -27,6 +25,22 @@ namespace uzSurfaceMapper.Extensions
 
             player.GetComponent<CharacterController>().enabled = enabled;
             player.GetComponent<Rigidbody>().isKinematic = !enabled;
+        }
+
+        public static void Clear<T>(this ConcurrentBag<T> bag)
+        {
+            while (!bag.IsEmpty)
+            {
+                bag.TryTake(out _);
+            }
+        }
+
+        public static void AddRange<T>(this ConcurrentBag<T> bag, List<T> list)
+        {
+            foreach (var item in list)
+            {
+                bag.Add(item);
+            }
         }
     }
 }
